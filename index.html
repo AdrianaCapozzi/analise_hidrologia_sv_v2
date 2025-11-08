@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Análise Hidrológica de São Vicente</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background: #181818; color: #eee; }
+        .filtros { margin-bottom: 20px; background: #222; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px #111; }
+        .grafico { background: #222; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px #111; }
+        label { margin-right: 10px; }
+        select, input { margin-right: 20px; background: #333; color: #eee; border: 1px solid #444; }
+        button { background: #0077b6; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #00b4d8; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">Análise Hidrológica - São Vicente/SP</h1>
+    <div class="filtros">
+        <label for="data_ini">Data inicial:</label>
+        <input type="date" id="data_ini">
+        <label for="data_fim">Data final:</label>
+        <input type="date" id="data_fim">
+        <label for="bairro">Bairro:</label>
+        <select id="bairro"><option value="">Todos</option></select>
+        <label for="tipo_evento">Tipo de evento:</label>
+        <select id="tipo_evento">
+            <option value="">Todos</option>
+            <option value="chuva">Chuva</option>
+            <option value="maré">Maré</option>
+            <option value="rio">Rio</option>
+        </select>
+        <button onclick="carregarDados()">Filtrar</button>
+    </div>
+    <div class="grafico">
+        <div id="grafico_barras" style="height:400px;"></div>
+        <div class="explicacao" id="exp_barras"></div>
+        <div id="grafico_linha" style="height:400px; margin-top:40px;"></div>
+        <div class="explicacao" id="exp_linha"></div>
+        <div id="grafico_boxplot" style="height:400px; margin-top:40px;"></div>
+        <div class="explicacao" id="exp_boxplot"></div>
+        <div id="grafico_disp" style="height:400px; margin-top:40px;"></div>
+        <div class="explicacao" id="exp_disp"></div>
+        <div id="grafico_pizza" style="height:400px; margin-top:40px;"></div>
+        <div class="explicacao" id="exp_pizza"></div>
+        <div id="grafico_empilhado" style="height:400px; margin-top:40px;"></div>
+        <div class="explicacao" id="exp_empilhado"></div>
+    </div>
+    <script>
+    async function carregarBairros() {
+        const res = await fetch('/api/bairros');
+        const bairros = await res.json();
+        const select = document.getElementById('bairro');
+        bairros.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.bairro;
+            opt.textContent = b.bairro + ' (' + b.regiao + ')';
+            select.appendChild(opt);
+        });
+    }
+    async function carregarDados() {
+        const data_ini = document.getElementById('data_ini').value;
+        const data_fim = document.getElementById('data_fim').value;
+        const bairro = document.getElementById('bairro').value;
+        const tipo_evento = document.getElementById('tipo_evento').value;
+        let url = `/api/eventos?`;
+        if (data_ini) url += `data_ini=${data_ini}&`;
+        if (data_fim) url += `data_fim=${data_fim}&`;
+        if (bairro) url += `bairro=${bairro}&`;
+        if (tipo_evento) url += `tipo_evento=${tipo_evento}&`;
+        const res = await fetch(url);
+        const dados = await res.json();
+        desenharGraficos(dados);
+    }
+    function desenharGraficos(dados) {
+        // Gráfico de barras: eventos por bairro (cores diferentes)
+        const bairros = {};
+        dados.forEach(e => {
+            bairros[e.bairro] = (bairros[e.bairro] || 0) + 1;
+        });
+        const bairroNomes = Object.keys(bairros);
+        const cores = bairroNomes.map((_, i) => `hsl(${i * 360 / bairroNomes.length}, 70%, 50%)`);
+        const barData = [{
+            x: bairroNomes,
+            y: Object.values(bairros),
+            type: 'bar',
+            marker: { color: cores },
+        }];
+        Plotly.newPlot('grafico_barras', barData, {
+            title: 'Eventos por Bairro',
+            paper_bgcolor: '#222',
+            plot_bgcolor: '#222',
+            font: { color: '#eee' },
+            xaxis: { title: 'Bairro' },
+            yaxis: { title: 'Quantidade de eventos' },
+        });
+        document.getElementById('exp_barras').innerText = 'Este gráfico mostra a quantidade de eventos extremos registrados em cada bairro de São Vicente. Permite identificar os bairros mais afetados.';
+
+        // Gráfico de linha: eventos ao longo do tempo com legenda
+        const porData = {};
+        dados.forEach(e => {
+            porData[e.data] = (porData[e.data] || 0) + 1;
+        });
+        const datas = Object.keys(porData).sort();
+        const linhaData = [{
+            x: datas,
+            y: datas.map(d => porData[d]),
+            type: 'scatter',
+            mode: 'lines+markers',
+            marker: { color: '#00b4d8' },
+            name: 'Quantidade de eventos',
+        }];
+        Plotly.newPlot('grafico_linha', linhaData, {
+            title: 'Eventos ao Longo do Tempo',
+            paper_bgcolor: '#222',
+            plot_bgcolor: '#222',
+            font: { color: '#eee' },
+            legend: { bgcolor: '#222', font: { color: '#eee' } },
+            xaxis: { title: 'Data' },
+            yaxis: { title: 'Quantidade de eventos' },
+        });
+        document.getElementById('exp_linha').innerText = 'Este gráfico mostra a evolução dos eventos hidrológicos ao longo do tempo, permitindo identificar períodos críticos e tendências.';
+
+        // Gráfico de boxplot para outliers de eventos por bairro
+        const bairroDias = {};
+        dados.forEach(e => {
+            if (!bairroDias[e.bairro]) bairroDias[e.bairro] = {};
+            bairroDias[e.bairro][e.data] = (bairroDias[e.bairro][e.data] || 0) + 1;
+        });
+        const boxData = bairroNomes.map((b, i) => ({
+            y: Object.values(bairroDias[b]),
+            name: b,
+            type: 'box',
+            marker: { color: cores[i] },
+            boxpoints: 'outliers',
+        }));
+        Plotly.newPlot('grafico_boxplot', boxData, {
+            title: 'Distribuição de Eventos por Bairro (Boxplot - Outliers)',
+            paper_bgcolor: '#222',
+            plot_bgcolor: '#222',
+            font: { color: '#eee' },
+            xaxis: { title: 'Bairro' },
+            yaxis: { title: 'Eventos por dia' },
+        });
+        document.getElementById('exp_boxplot').innerText = 'O boxplot revela a distribuição dos eventos por bairro, destacando outliers e bairros com maior variabilidade de ocorrências.';
+
+        // Gráfico de dispersão: correlação entre precipitação e intensidade
+        const chuva = dados.filter(e => e.tipo_evento === 'chuva' && e.precipitacao_mm);
+        const dispData = [{
+            x: chuva.map(e => e.precipitacao_mm),
+            y: chuva.map(e => ({'leve':1,'moderada':2,'severa':3}[e.intensidade])),
+            text: chuva.map(e => `${e.bairro} (${e.intensidade})`),
+            mode: 'markers',
+            type: 'scatter',
+            marker: { color: '#ffb703', size: 10 },
+        }];
+        Plotly.newPlot('grafico_disp', dispData, {
+            title: 'Correlação Precipitação x Intensidade da Chuva',
+            paper_bgcolor: '#222',
+            plot_bgcolor: '#222',
+            font: { color: '#eee' },
+            xaxis: { title: 'Precipitação (mm)' },
+            yaxis: { title: 'Intensidade (1=leve, 2=moderada, 3=severa)' },
+        });
+        document.getElementById('exp_disp').innerText = 'Este gráfico mostra a relação entre a quantidade de chuva (mm) e a intensidade dos eventos, evidenciando padrões de severidade.';
+
+        // Gráfico de pizza: proporção de tipos de eventos
+        const tipos = {};
+        dados.forEach(e => {
+            tipos[e.tipo_evento] = (tipos[e.tipo_evento] || 0) + 1;
+        });
+        const pizzaData = [{
+            labels: Object.keys(tipos),
+            values: Object.values(tipos),
+            type: 'pie',
+            marker: { colors: ['#00b4d8','#ffb703','#90be6d'] },
+        }];
+        Plotly.newPlot('grafico_pizza', pizzaData, {
+            title: 'Proporção dos Tipos de Eventos',
+            paper_bgcolor: '#222',
+            font: { color: '#eee' },
+        });
+        document.getElementById('exp_pizza').innerText = 'A pizza mostra a proporção de cada tipo de evento extremo registrado: chuva, maré e enchente de rio.';
+
+        // Gráfico de barras empilhadas: eventos por bairro e tipo
+        const tiposUnicos = Object.keys(tipos);
+        const empilhadoData = tiposUnicos.map((tipo, idx) => ({
+            x: bairroNomes,
+            y: bairroNomes.map(b => dados.filter(e => e.bairro === b && e.tipo_evento === tipo).length),
+            name: tipo,
+            type: 'bar',
+            marker: { color: cores[idx % cores.length] },
+        }));
+        Plotly.newPlot('grafico_empilhado', empilhadoData, {
+            barmode: 'stack',
+            title: 'Eventos por Bairro e Tipo (Empilhado)',
+            paper_bgcolor: '#222',
+            plot_bgcolor: '#222',
+            font: { color: '#eee' },
+            xaxis: { title: 'Bairro' },
+            yaxis: { title: 'Quantidade de eventos' },
+            legend: { bgcolor: '#222', font: { color: '#eee' } },
+        });
+        document.getElementById('exp_empilhado').innerText = 'Este gráfico empilhado mostra a quantidade de eventos por bairro, separados por tipo (chuva, maré, rio). Facilita a comparação entre bairros e tipos.';
+    }
+    carregarBairros();
+    carregarDados();
+    </script>
+</body>
+</html>.
