@@ -5,8 +5,8 @@ import plotly.io as pio
 
 app = Flask(__name__)
 
-# Caminho do arquivo Excel (deixe na mesma pasta)
-EXCEL_PATH = "dados.xlsx"
+# Caminho do arquivo Excel
+EXCEL_PATH = "Fakers_SQL_Dash.xlsx"
 
 @app.route('/')
 def index():
