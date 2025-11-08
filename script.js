@@ -85,3 +85,20 @@ function criarGrafico(tipo, titulo, dados) {
     }
   };
 }
+// TESTE DE LEITURA DO EXCEL
+(async () => {
+  try {
+    const url = "Fakers_SQL_Dash.xlsx";
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Erro ao baixar arquivo: " + response.status);
+    const arrayBuffer = await response.arrayBuffer();
+    const data = new Uint8Array(arrayBuffer);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+    console.log("✅ Planilha lida com sucesso! Primeiras linhas:", jsonData.slice(0, 5));
+  } catch (erro) {
+    console.error("❌ Erro ao ler o Excel:", erro);
+  }
+})();
