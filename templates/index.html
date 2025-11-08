@@ -1,30 +1,46 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard de Análise</title>
-    <style>
-        body {
-            background-color: #000;
-            color: #ccc;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        .grafico {
-            margin: 40px auto;
-            width: 80%;
-            background-color: #111;
-            border-radius: 15px;
-            padding: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Estatístico - Análise de Dados</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="libs/chart.min.js"></script>
+  <script src="libs/xlsx.full.min.js"></script>
+  <script src="libs/papaparse.min.js"></script>
 </head>
-<body>
-    <h1>Consulta Planilha Análise de Dados</h1>
-    <h3>Aqui você pode visualizar os gráficos gerados automaticamente</h3>
 
-    <div class="grafico">{{ grafico_area|safe }}</div>
-    <div class="grafico">{{ grafico_data|safe }}</div>
-    <div class="grafico">{{ grafico_resp|safe }}</div>
+<body>
+  <header>
+    <h1>Dashboard de Estatística Descritiva e Inferencial</h1>
+    <h2>Filtros</h2>
+    <div id="filtros">
+      <label>Data: <input type="date" id="filtroData"></label>
+      <label>Evento: <select id="filtroEvento"></select></label>
+      <label>Local: <select id="filtroLocal"></select></label>
+      <label>Intensidade: <select id="filtroIntensidade"></select></label>
+      <button id="btnFiltrar">Aplicar Filtros</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="graficos">
+      <canvas id="grafico1"></canvas>
+      <canvas id="grafico2"></canvas>
+      <canvas id="grafico3"></canvas>
+      <canvas id="grafico4"></canvas>
+      <canvas id="grafico5"></canvas>
+      <canvas id="grafico6"></canvas>
+      <canvas id="grafico7"></canvas>
+      <canvas id="grafico8"></canvas>
+    </section>
+  </main>
+
+  <footer>
+    <p>Desenvolvido por Adriana Capozzi © 2025</p>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
+
