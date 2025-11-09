@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const url = "Fakers_SQL_Dash.xlsx";
+  const url = "Fakers_SQL_Dash.csv";
   const response = await fetch(url);
   const arrayBuffer = await response.arrayBuffer();
   const data = new Uint8Array(arrayBuffer);
@@ -88,7 +88,7 @@ function criarGrafico(tipo, titulo, dados) {
 // TESTE DE LEITURA DO EXCEL
 (async () => {
   try {
-    const url = "Fakers_SQL_Dash.xlsx";
+    const url = "Fakers_SQL_Dash.csv";
     const response = await fetch(url);
     if (!response.ok) throw new Error("Erro ao baixar arquivo: " + response.status);
     const arrayBuffer = await response.arrayBuffer();
