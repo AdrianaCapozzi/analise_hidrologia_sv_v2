@@ -1,57 +1,43 @@
 body {
-  background-color: #111;
-  color: #e0e0e0;
-  font-family: Arial, sans-serif;
+  background: #0b0b0b;
+  color: #ddd;
+  font-family: "Segoe UI", sans-serif;
   text-align: center;
   margin: 0;
-  padding: 0;
-}
-
-header {
   padding: 20px;
-  background: #222;
-  box-shadow: 0 0 10px #000;
 }
 
 h1 {
-  color: #66ccff;
+  color: #4ab1ff;
+  margin-bottom: 20px;
 }
 
-#filtros {
-  margin-top: 10px;
+.filtros {
+  margin-bottom: 20px;
 }
 
-label, select, input {
+input, button {
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
   margin: 5px;
-  background-color: #222;
-  color: #e0e0e0;
-  border: 1px solid #444;
-  padding: 5px;
-  border-radius: 5px;
 }
 
 button {
-  background-color: #0077cc;
+  background-color: #0078ff;
   color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 15px;
   cursor: pointer;
-}
-
-button:hover {
-  background-color: #005fa3;
 }
 
 .graficos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  margin-top: 30px;
 }
 
 canvas {
   background: #1a1a1a;
-  border-radius: 12px;
-  padding: 10px;
+  border-radius: 10px;
+  padding: 15px;
 }
