@@ -1,73 +1,83 @@
-async function carregarCSV(url) {
-  const resposta = await fetch(url);
-  const texto = await resposta.text();
-  const linhas = texto.split("\n").map(l => l.split(","));
-  const cabecalho = linhas[0].map(c => c.trim());
-  const dados = linhas.slice(1).filter(l => l.length === cabecalho.length);
-  return dados.map(linha => {
-    let obj = {};
-    cabecalho.forEach((col, i) => obj[col] = linha[i]);
-    return obj;
-  });
-}
+a// URL do CSV hospedado no GitHub Pages
+const CSV_URL = "https://adrianacapozzi.github.io/analise_hidrologia_sv_v2/dados.csv";
 
-async function carregarGraficos() {
-  const localFiltro = document.getElementById("filtroLocal").value.toLowerCase();
-  const eventoFiltro = document.getElementById("filtroEvento").value.toLowerCase();
+let dados = [];
 
-  const dados = await carregarCSV("dados.csv");
-
-  // Aplica filtros simples
-  const filtrados = dados.filter(d =>
-    (!localFiltro || d.Local?.toLowerCase().includes(localFiltro)) &&
-    (!eventoFiltro || d.Evento?.toLowerCase().includes(eventoFiltro))
-  );
-
-  // Agrupamentos por colunas
-  function agruparPor(coluna) {
-    const contagem = {};
-    filtrados.forEach(l => {
-      const chave = l[coluna] || "Não informado";
-      contagem[chave] = (contagem[chave] || 0) + 1;
-    });
-    return {
-      labels: Object.keys(contagem),
-      valores: Object.values(contagem)
-    };
-  }
-
-  // Gera gráficos
-  criarGrafico('grafico1', 'bar', 'Ocorrências por Local', agruparPor('Local'));
-  criarGrafico('grafico2', 'pie', 'Distribuição por Evento', agruparPor('Evento'));
-  criarGrafico('grafico3', 'doughnut', 'Intensidade das Chuvas', agruparPor('Intensidade'));
-  criarGrafico('grafico4', 'line', 'Evolução Temporal', agruparPor('Data'));
-}
-
-function criarGrafico(id, tipo, titulo, dados) {
-  const ctx = document.getElementById(id).getContext('2d');
-  if (window[id]) window[id].destroy();
-  window[id] = new Chart(ctx, {
-    type: tipo,
-    data: {
-      labels: dados.labels,
-      datasets: [{
-        label: titulo,
-        data: dados.valores,
-        backgroundColor: [
-          "#4ab1ff", "#61ff85", "#ffb347", "#ff6384", "#c56fff", "#47ffe3"
-        ],
-        borderColor: "#222",
-        borderWidth: 1
-      }]
-    },
-    options: {
-      plugins: { legend: { labels: { color: "#ddd" } } },
-      scales: {
-        x: { ticks: { color: "#ccc" } },
-        y: { ticks: { color: "#ccc" } }
-      }
+function carregarCSV() {
+  Papa.parse(CSV_URL, {
+    download: true,
+    header: true,
+    complete: function(results) {
+      dados = results.data;
+      carregarGraficos();
     }
   });
 }
 
-window.onload = carregarGraficos;
+function carregarGraficos() {
+  const filtroLocal = document.getElementById('filtroLocal').value.toLowerCase();
+  const filtroEvento = document.getElementById('filtroEvento').value.toLowerCase();
+
+  const filtrados = dados.filter(d =>
+    (!filtroLocal || (d.Local && d.Local.toLowerCase().includes(filtroLocal))) &&
+    (!filtroEvento || (d.Evento && d.Evento.toLowerCase().includes(filtroEvento)))
+  );
+
+  gerarGraficos(filtrados);
+}
+
+function gerarGraficos(data) {
+  const ctx1 = document.getElementById('grafico1');
+  const ctx2 = document.getElementById('grafico2');
+  const ctx3 = document.getElementById('grafico3');
+  const ctx4 = document.getElementById('grafico4');
+
+  const porLocal = agrupar(data, 'Local', 'Intensidade');
+  const porEvento = agrupar(data, 'Evento', 'Intensidade');
+  const porTecnico = agrupar(data, 'Responsavel', 'Intensidade');
+  const porData = agrupar(data, 'Data', 'Intensidade');
+
+  new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(porLocal),
+      datasets: [{ label: 'Intensidade por Local', data: Object.values(porLocal), backgroundColor: '#00bfff' }]
+    }
+  });
+
+  new Chart(ctx2, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(porEvento),
+      datasets: [{ label: 'Eventos', data: Object.values(porEvento) }]
+    }
+  });
+
+  new Chart(ctx3, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(porTecnico),
+      datasets: [{ label: 'Atendimentos por Responsável', data: Object.values(porTecnico), backgroundColor: '#32cd32' }]
+    }
+  });
+
+  new Chart(ctx4, {
+    type: 'line',
+    data: {
+      labels: Object.keys(porData),
+      datasets: [{ label: 'Intensidade ao longo do tempo', data: Object.values(porData), borderColor: '#ffcc00' }]
+    }
+  });
+}
+
+function agrupar(data, chave, valor) {
+  return data.reduce((acc, item) => {
+    if (item[chave] && item[valor]) {
+      acc[item[chave]] = (acc[item[chave]] || 0) + parseFloat(item[valor]);
+    }
+    return acc;
+  }, {});
+}
+
+// Gera os gráficos automaticamente ao carregar a página
+carregarCSV();
