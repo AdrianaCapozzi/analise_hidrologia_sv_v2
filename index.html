@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Análise Hidrológica - SV</title>
+  <title>Análise Hidrológica - São Vicente 🌧️</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,9 +11,16 @@
   <h1>Análise Hidrológica - São Vicente 🌧️</h1>
 
   <section class="filtros">
-    <input type="text" id="filtroLocal" placeholder="Filtrar por local">
-    <input type="text" id="filtroEvento" placeholder="Filtrar por evento">
-    <button onclick="carregarGraficos()">Aplicar</button>
+    <label>Local:</label>
+    <select id="filtroLocal"></select>
+
+    <label>Evento:</label>
+    <select id="filtroEvento"></select>
+
+    <label>Data:</label>
+    <select id="filtroData"></select>
+
+    <button onclick="aplicarFiltros()">Aplicar Filtros</button>
   </section>
 
   <section class="graficos">
@@ -21,6 +28,10 @@
     <canvas id="grafico2"></canvas>
     <canvas id="grafico3"></canvas>
     <canvas id="grafico4"></canvas>
+    <canvas id="grafico5"></canvas>
+    <canvas id="grafico6"></canvas>
+    <canvas id="grafico7"></canvas>
+    <canvas id="grafico8"></canvas>
   </section>
 
   <script src="script.js"></script>
