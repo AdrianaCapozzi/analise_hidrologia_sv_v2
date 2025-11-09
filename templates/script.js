@@ -1,104 +1,73 @@
-document.addEventListener("DOMContentLoaded", async () => {
-  const url = "Fakers_SQL_Dash.csv";
-  const response = await fetch(url);
-  const arrayBuffer = await response.arrayBuffer();
-  const data = new Uint8Array(arrayBuffer);
-  const workbook = XLSX.read(data, { type: "array" });
-  const sheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[sheetName];
-  const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-  inicializarFiltros(jsonData);
-  gerarGraficos(jsonData);
-
-  document.getElementById("btnFiltrar").addEventListener("click", () => {
-    const filtrado = aplicarFiltros(jsonData);
-    gerarGraficos(filtrado);
+async function carregarCSV(url) {
+  const resposta = await fetch(url);
+  const texto = await resposta.text();
+  const linhas = texto.split("\n").map(l => l.split(","));
+  const cabecalho = linhas[0].map(c => c.trim());
+  const dados = linhas.slice(1).filter(l => l.length === cabecalho.length);
+  return dados.map(linha => {
+    let obj = {};
+    cabecalho.forEach((col, i) => obj[col] = linha[i]);
+    return obj;
   });
-});
-
-function inicializarFiltros(dados) {
-  preencherSelect("filtroEvento", [...new Set(dados.map(d => d.Evento))]);
-  preencherSelect("filtroLocal", [...new Set(dados.map(d => d.Local))]);
-  preencherSelect("filtroIntensidade", [...new Set(dados.map(d => d.Intensidade))]);
 }
 
-function preencherSelect(id, valores) {
-  const select = document.getElementById(id);
-  select.innerHTML = '<option value="">Todos</option>';
-  valores.forEach(v => select.innerHTML += `<option value="${v}">${v}</option>`);
-}
+async function carregarGraficos() {
+  const localFiltro = document.getElementById("filtroLocal").value.toLowerCase();
+  const eventoFiltro = document.getElementById("filtroEvento").value.toLowerCase();
 
-function aplicarFiltros(dados) {
-  const data = document.getElementById("filtroData").value;
-  const evento = document.getElementById("filtroEvento").value;
-  const local = document.getElementById("filtroLocal").value;
-  const intensidade = document.getElementById("filtroIntensidade").value;
+  const dados = await carregarCSV("dados.csv");
 
-  return dados.filter(d => 
-    (!data || new Date(d.Data).toISOString().split('T')[0] === data) &&
-    (!evento || d.Evento === evento) &&
-    (!local || d.Local === local) &&
-    (!intensidade || d.Intensidade === intensidade)
+  // Aplica filtros simples
+  const filtrados = dados.filter(d =>
+    (!localFiltro || d.Local?.toLowerCase().includes(localFiltro)) &&
+    (!eventoFiltro || d.Evento?.toLowerCase().includes(eventoFiltro))
   );
+
+  // Agrupamentos por colunas
+  function agruparPor(coluna) {
+    const contagem = {};
+    filtrados.forEach(l => {
+      const chave = l[coluna] || "Não informado";
+      contagem[chave] = (contagem[chave] || 0) + 1;
+    });
+    return {
+      labels: Object.keys(contagem),
+      valores: Object.values(contagem)
+    };
+  }
+
+  // Gera gráficos
+  criarGrafico('grafico1', 'bar', 'Ocorrências por Local', agruparPor('Local'));
+  criarGrafico('grafico2', 'pie', 'Distribuição por Evento', agruparPor('Evento'));
+  criarGrafico('grafico3', 'doughnut', 'Intensidade das Chuvas', agruparPor('Intensidade'));
+  criarGrafico('grafico4', 'line', 'Evolução Temporal', agruparPor('Data'));
 }
 
-function gerarGraficos(dados) {
-  document.querySelectorAll("canvas").forEach(c => c.getContext("2d").clearRect(0,0,c.width,c.height));
-
-  const ctx = id => document.getElementById(id).getContext("2d");
-  
-  const eventos = contarPorCampo(dados, "Evento");
-  const locais = contarPorCampo(dados, "Local");
-  const intensidade = contarPorCampo(dados, "Intensidade");
-
-  new Chart(ctx("grafico1"), criarGrafico("bar", "Eventos por Local", locais));
-  new Chart(ctx("grafico2"), criarGrafico("pie", "Distribuição por Intensidade", intensidade));
-  new Chart(ctx("grafico3"), criarGrafico("line", "Tendência de Eventos", eventos));
-  new Chart(ctx("grafico4"), criarGrafico("bar", "Eventos por Intensidade", intensidade));
-  new Chart(ctx("grafico5"), criarGrafico("doughnut", "Proporção de Locais", locais));
-  new Chart(ctx("grafico6"), criarGrafico("bar", "Correlação Local × Intensidade", locais));
-  new Chart(ctx("grafico7"), criarGrafico("line", "Evolução Temporal", eventos));
-  new Chart(ctx("grafico8"), criarGrafico("bar", "Frequência de Ocorrências", eventos));
-}
-
-function contarPorCampo(dados, campo) {
-  const contagem = {};
-  dados.forEach(d => contagem[d[campo]] = (contagem[d[campo]] || 0) + 1);
-  return contagem;
-}
-
-function criarGrafico(tipo, titulo, dados) {
-  return {
+function criarGrafico(id, tipo, titulo, dados) {
+  const ctx = document.getElementById(id).getContext('2d');
+  if (window[id]) window[id].destroy();
+  window[id] = new Chart(ctx, {
     type: tipo,
     data: {
-      labels: Object.keys(dados),
+      labels: dados.labels,
       datasets: [{
         label: titulo,
-        data: Object.values(dados),
+        data: dados.valores,
+        backgroundColor: [
+          "#4ab1ff", "#61ff85", "#ffb347", "#ff6384", "#c56fff", "#47ffe3"
+        ],
+        borderColor: "#222",
         borderWidth: 1
       }]
     },
     options: {
-      responsive: true,
-      plugins: { title: { display: true, text: titulo } }
+      plugins: { legend: { labels: { color: "#ddd" } } },
+      scales: {
+        x: { ticks: { color: "#ccc" } },
+        y: { ticks: { color: "#ccc" } }
+      }
     }
-  };
+  });
 }
-// TESTE DE LEITURA DO EXCEL
-(async () => {
-  try {
-    const url = "Fakers_SQL_Dash.csv";
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Erro ao baixar arquivo: " + response.status);
-    const arrayBuffer = await response.arrayBuffer();
-    const data = new Uint8Array(arrayBuffer);
-    const workbook = XLSX.read(data, { type: "array" });
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet);
-    console.log("✅ Planilha lida com sucesso! Primeiras linhas:", jsonData.slice(0, 5));
-  } catch (erro) {
-    console.error("❌ Erro ao ler o Excel:", erro);
-  }
-})();
+
+window.onload = carregarGraficos;
