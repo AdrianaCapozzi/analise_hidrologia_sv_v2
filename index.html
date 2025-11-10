@@ -368,21 +368,44 @@
             }
 
             // --- GRÁFICO 1: Eventos por Tipo (Barra) ---
-            const porTipo = agruparContagem(dados, "tipo_evento");
-            criarGrafico("grafico1", {
-                type: "bar",
-                data: {
-                    labels: Object.keys(porTipo),
-                    datasets: [{
-                        label: 'Eventos',
-                        data: Object.values(porTipo),
-                        backgroundColor: coresPrimarias[0],
-                        borderColor: coresPrimarias[0],
-                        borderWidth: 1
-                    }]
-                },
-                options: getChartOptions('Eventos por Tipo', 'bar')
-            });
+           const porTipo = agruparContagem(dados, "tipo_evento");
+criarGrafico("grafico1", {
+    type: "bar",
+    data: {
+        labels: Object.keys(porTipo),
+        datasets: [{
+            label: '', // sem legenda
+            data: Object.values(porTipo),
+            backgroundColor: coresPrimarias.slice(0, Object.keys(porTipo).length), // cada barra com uma cor
+            borderColor: coresPrimarias.slice(0, Object.keys(porTipo).length),
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }, // 🔹 remove legenda
+            title: {
+                display: true,
+                text: 'Eventos por Tipo',
+                color: '#fff',
+                font: { size: 16, weight: 'bold' }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: '#ccc', font: { size: 12 } },
+                grid: { display: false } // remove linhas verticais
+            },
+            y: {
+                ticks: { color: '#ccc', font: { size: 12 } },
+                grid: { color: '#333' } // mantém leve contraste nas horizontais
+            }
+        },
+        layout: { padding: 10 }
+    }
+});
+
 
             // --- GRÁFICO 2: Proporção de Intensidade (Rosca/Doughnut) ---
            const porIntensidade = agruparContagem(dados, "nivel_alerta");
@@ -403,8 +426,8 @@ criarGrafico("grafico2", {
         plugins: {
             legend: {
                 display: true,
-                position: 'top', // legenda fica no topo
-                align: 'end',    // empurra para a direita
+                position: 'top', 
+                align: 'end',     
                 labels: {
                     boxWidth: 14,
                     boxHeight: 14,
