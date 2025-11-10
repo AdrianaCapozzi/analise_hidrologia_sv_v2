@@ -522,7 +522,7 @@
             });
 
 
-            // --- GRÁFICO 8: Top 5 Bairros por Área Afetada (Barra Horizontal) ---
+            // --- GRÁFICO 8: Bairros x Área Afetada (Barra Horizontal) ---
             const areaPorBairro = agruparSoma(dados, "bairro", "area_afetada_m2");
             const top5Bairros = Object.entries(areaPorBairro).sort(([, a], [, b]) => b - a).slice(0, 5);
 
