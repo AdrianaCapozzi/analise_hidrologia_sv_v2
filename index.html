@@ -647,6 +647,24 @@
                         grid: { color: 'rgba(48, 54, 61, 0.5)' }
                     }
                 }
+
+
+.footer {
+  background-color: #111;      /* fundo escuro combinando com o tema */
+  color: #aaa;                 /* texto em cinza claro */
+  text-align: center;
+  padding: 15px 0;
+  font-size: 0.9rem;
+  border-top: 1px solid #222;  /* separação sutil do conteúdo */
+  margin-top: 40px;
+}
+
+.footer strong {
+  color: #4ea1ff; /* azul que combina com o título do dashboard */
+}
+
+
+
             };
 
             if (type === 'bar' || type === 'horizontal-bar') {
@@ -679,5 +697,10 @@
         window.onload = carregarDados;
 
     </script>
+</body>
+
+  <footer class="footer">
+    <p>Desenvolvido por <strong>Adriana Capozzi</strong> @ Projeto Integrador IV — UNIVESP</p>
+  </footer>
 </body>
 </html>
