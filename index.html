@@ -427,23 +427,6 @@
                 options: getChartOptions('Tendência Diária de Precipitação (mm)', 'line')
             });
 
-            // --- GRÁFICO 4: Eventos por Bairro e Nível de Alerta (Barra Empilhada) ---
-            const bairros = [...new Set(dados.map(l => l.bairro).filter(Boolean))].slice(0, 10);
-            const alertas = [...new Set(dados.map(l => l.nivel_alert).filter(Boolean))].sort();
-            const data4 = {
-                labels: bairros,
-                datasets: alertas.map((alerta, i) => ({
-                    label: alerta,
-                    data: bairros.map(bairro => dados.filter(l => l.bairro === bairro && l.nivel_alert === alerta).length),
-                    backgroundColor: coresPrimarias[i % coresPrimarias.length]
-                }))
-            };
-
-            criarGrafico("grafico4", {
-                type: "bar",
-                data: data4,
-                options: getChartOptions('Eventos por Bairro vs Nível de Alerta', 'stacked-bar')
-            });
 
 
             // --- GRÁFICO 5: Precipitação vs Duração (Dispersão/Correlação) ---
