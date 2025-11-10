@@ -458,48 +458,112 @@ criarGrafico("grafico2", {
 
 
             // --- GRÁFICO 3: Tendência Diária de Precipitação (Linha) ---
-            const porData = {};
-            dados.filter(l => l.data_evento && l.precipitacao_mm !== null).forEach(l => {
-                const data = l.data_evento;
-                porData[data] = (porData[data] || 0) + l.precipitacao_mm;
-            });
-            const datasOrdenadas = Object.keys(porData).sort((a, b) => new Date(a) - new Date(b));
-            const precipitacaoTotal = datasOrdenadas.map(d => porData[d]);
+           const porData = {};
+dados
+  .filter(l => l.data_evento && l.precipitacao_mm !== null)
+  .forEach(l => {
+    const data = l.data_evento;
+    porData[data] = (porData[data] || 0) + l.precipitacao_mm;
+  });
 
-            criarGrafico("grafico3", {
-                type: "line",
-                data: {
-                    labels: datasOrdenadas,
-                    datasets: [{
-                        label: 'Precipitação Acumulada (mm)',
-                        data: precipitacaoTotal,
-                        borderColor: coresPrimarias[2],
-                        backgroundColor: 'rgba(255, 123, 114, 0.2)',
-                        tension: 0.4,
-                        pointRadius: 3,
-                        fill: true
-                    }]
-                },
-                options: getChartOptions('Tendência Diária de Precipitação (mm)', 'line')
-            });
+const datasOrdenadas = Object.keys(porData).sort((a, b) => new Date(a) - new Date(b));
+const precipitacaoTotal = datasOrdenadas.map(d => porData[d]);
+
+criarGrafico("grafico3", {
+  type: "line",
+  data: {
+    labels: datasOrdenadas,
+    datasets: [{
+      label: '', // legenda removida
+      data: precipitacaoTotal,
+      borderColor: coresPrimarias[2],
+      backgroundColor: 'rgba(255, 123, 114, 0.2)',
+      tension: 0.4,
+      pointRadius: 3,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false }, // 🔹 remove a legenda
+      title: {
+        display: true,
+        text: 'Tendência Diária de Precipitação (mm)',
+        color: '#fff',
+        font: { size: 16, weight: 'bold' }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#ccc', font: { size: 12 } },
+        grid: { color: '#333' }
+      },
+      y: {
+        ticks: { color: '#ccc', font: { size: 12 } },
+        grid: { color: '#333' }
+      }
+    },
+    layout: { padding: 10 }
+  }
+});
+
 
             // --- GRÁFICO 4: Eventos por Bairro e Nível de Alerta (Barra Empilhada) ---
-            const bairros = [...new Set(dados.map(l => l.bairro).filter(Boolean))].slice(0, 10);
-            const alertas = [...new Set(dados.map(l => l.nivel_alert).filter(Boolean))].sort();
-            const data4 = {
-                labels: bairros,
-                datasets: alertas.map((alerta, i) => ({
-                    label: alerta,
-                    data: bairros.map(bairro => dados.filter(l => l.bairro === bairro && l.nivel_alert === alerta).length),
-                    backgroundColor: coresPrimarias[i % coresPrimarias.length]
-                }))
-            };
+            // 🔹 Pegar os 10 primeiros bairros únicos
+const bairros = [...new Set(dados.map(l => l.bairro).filter(Boolean))].slice(0, 10);
 
-            criarGrafico("grafico4", {
-                type: "bar",
-                data: data4,
-                options: getChartOptions('Eventos por Bairro vs Nível de Alerta', 'stacked-bar')
-            });
+// 🔹 Pegar níveis de alerta únicos (campo corrigido)
+const alertas = [...new Set(dados.map(l => l.nivel_alerta).filter(Boolean))].sort();
+
+// 🔹 Montar o dataset cruzando bairro × nível de alerta
+const data4 = {
+  labels: bairros,
+  datasets: alertas.map((alerta, i) => ({
+    label: alerta,
+    data: bairros.map(bairro =>
+      dados.filter(l => l.bairro === bairro && l.nivel_alerta === alerta).length
+    ),
+    backgroundColor: coresPrimarias[i % coresPrimarias.length],
+    borderWidth: 1
+  }))
+};
+
+// 🔹 Criar gráfico de barras empilhadas
+criarGrafico("grafico4", {
+  type: "bar",
+  data: data4,
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        labels: { color: '#ccc', font: { size: 12 } }
+      },
+      title: {
+        display: true,
+        text: 'Eventos por Bairro vs Nível de Alerta',
+        color: '#fff',
+        font: { size: 16, weight: 'bold' }
+      }
+    },
+    scales: {
+      x: {
+        stacked: true,
+        ticks: { color: '#ccc', font: { size: 12 } },
+        grid: { display: false }
+      },
+      y: {
+        stacked: true,
+        ticks: { color: '#ccc', font: { size: 12 } },
+        grid: { color: '#333' }
+      }
+    },
+    layout: { padding: 10 }
+  }
+});
+
 
 
             // --- GRÁFICO 5: Precipitação vs Duração (Dispersão/Correlação) ---
