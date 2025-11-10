@@ -1,123 +1,126 @@
-// Configuração da planilha Google Sheets
+// 🔗 Conectando à planilha Google Sheets
 const SHEET_ID = "1NfzrLVc_MoepVM3021fRWOis-fuwJBq9ocqA0u2sEDQ";
 const SHEET_NAME = "dados";
 const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
 
-// Função principal
-async function carregarGraficos() {
-  const response = await fetch(API_URL);
-  const csvData = await response.text();
+// 🔹 Elementos HTML
+const filtroLocal = document.getElementById("filtroLocal");
+const filtroEvento = document.getElementById("filtroEvento");
+const filtroData = document.getElementById("filtroData");
 
-  // Parse do CSV
-  const data = Papa.parse(csvData, { header: true }).data;
+let dadosPlanilha = [];
 
-  // Filtros
-  const filtroLocal = document.getElementById("filtroLocal").value.toLowerCase();
-  const filtroEvento = document.getElementById("filtroEvento").value.toLowerCase();
+// 🔹 Carregar dados da planilha
+async function carregarDados() {
+  try {
+    const response = await fetch(API_URL);
+    const csvText = await response.text();
 
-  const dadosFiltrados = data.filter(row =>
-    (!filtroLocal || row.municipio?.toLowerCase().includes(filtroLocal) || row.bairro?.toLowerCase().includes(filtroLocal)) &&
-    (!filtroEvento || row.tipo_evento?.toLowerCase().includes(filtroEvento))
-  );
-
-  // --- 1️⃣ Pizza: tipo_evento x intensidade_evento ---
-  const tipoEventoLabels = [...new Set(dadosFiltrados.map(d => d.tipo_evento))];
-  const intensidadeContagem = tipoEventoLabels.map(tipo =>
-    dadosFiltrados.filter(d => d.tipo_evento === tipo).length
-  );
-  criarGraficoPizza("grafico1", tipoEventoLabels, intensidadeContagem, "Tipo de Evento x Quantidade");
-
-  // --- 2️⃣ Barras: média duração_horas por tipo_evento ---
-  const duracaoPorTipo = tipoEventoLabels.map(tipo => {
-    const eventos = dadosFiltrados.filter(d => d.tipo_evento === tipo);
-    const media = eventos.reduce((acc, d) => acc + parseFloat(d.duracao_horas || 0), 0) / eventos.length;
-    return media.toFixed(1);
-  });
-  criarGraficoBarras("grafico2", tipoEventoLabels, duracaoPorTipo, "Média de duração (h) por Tipo de Evento");
-
-  // --- 3️⃣ Barras: umidade_relativa x tipo_evento ---
-  const umidadeMedia = tipoEventoLabels.map(tipo => {
-    const eventos = dadosFiltrados.filter(d => d.tipo_evento === tipo);
-    const media = eventos.reduce((acc, d) => acc + parseFloat(d.umidade_relativa || 0), 0) / eventos.length;
-    return media.toFixed(1);
-  });
-  criarGraficoBarras("grafico3", tipoEventoLabels, umidadeMedia, "Umidade Relativa Média x Tipo de Evento");
-
-  // --- 4️⃣ Linha temporal: tipo_evento x data_evento ---
-  const eventosOrdenados = dadosFiltrados.sort((a, b) => new Date(a.data_evento) - new Date(b.data_evento));
-  const datas = eventosOrdenados.map(d => d.data_evento);
-  const tipos = eventosOrdenados.map(d => d.tipo_evento);
-  criarGraficoLinha("grafico4", datas, tipos, "Ocorrência Temporal de Eventos");
-
-  // --- 5️⃣ Colunas: área_afetada_m2 x evento ---
-  const areaLabels = dadosFiltrados.map(d => d.tipo_evento);
-  const areaValores = dadosFiltrados.map(d => parseFloat(d.area_afetada_m2 || 0));
-  criarGraficoBarras("grafico5", areaLabels, areaValores, "Área Afetada (m²) por Evento");
-
-  // --- 6️⃣ Barras: nível_alerta x tipo_evento ---
-  const alertaLabels = [...new Set(dadosFiltrados.map(d => d.nivel_alerta))];
-  const alertaCount = alertaLabels.map(alerta =>
-    dadosFiltrados.filter(d => d.nivel_alerta === alerta).length
-  );
-  criarGraficoBarras("grafico6", alertaLabels, alertaCount, "Nível de Alerta x Tipo de Evento");
-
-  // --- 7️⃣ Barras: % de habitantes atingidos ---
-  const populacaoTotal = 1867558;
-  const porMunicipio = {};
-  dadosFiltrados.forEach(d => {
-    const mun = d.municipio;
-    const afetados = parseInt(d.populacao_afetada || 0);
-    porMunicipio[mun] = (porMunicipio[mun] || 0) + afetados;
-  });
-  const municipios = Object.keys(porMunicipio);
-  const percentuais = Object.values(porMunicipio).map(v => ((v / populacaoTotal) * 100).toFixed(3));
-  criarGraficoBarras("grafico7", municipios, percentuais, "% População Atingida por Município");
-
-  // --- 8️⃣ Pizza: órgão responsável x status_atendimento ---
-  const orgaos = [...new Set(dadosFiltrados.map(d => d.orgao_responsavel))];
-  const statusCount = orgaos.map(org =>
-    dadosFiltrados.filter(d => d.orgao_responsavel === org).length
-  );
-  criarGraficoPizza("grafico8", orgaos, statusCount, "Órgão Responsável x Ocorrências");
-
-  // --- 9️⃣ Barras: custo estimado médio x evento ---
-  const custoMedio = tipoEventoLabels.map(tipo => {
-    const eventos = dadosFiltrados.filter(d => d.tipo_evento === tipo);
-    const media = eventos.reduce((acc, d) => acc + parseFloat(d.custo_estimado_reais || 0), 0) / eventos.length;
-    return media.toFixed(0);
-  });
-  criarGraficoBarras("grafico9", tipoEventoLabels, custoMedio, "Custo Estimado Médio (R$) por Evento");
-
-  // --- 🔟 Linha: evento x precipitação_mare ---
-  const mareLabels = dadosFiltrados.map(d => d.tipo_evento);
-  const mareValores = dadosFiltrados.map(d => parseFloat(d.precipitacao_mm || 0));
-  criarGraficoLinha("grafico10", mareLabels, mareValores, "Precipitação (mm) por Evento");
+    Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        dadosPlanilha = results.data;
+        preencherFiltros(dadosPlanilha);
+        gerarGraficos(dadosPlanilha);
+      },
+    });
+  } catch (erro) {
+    console.error("Erro ao carregar planilha:", erro);
+  }
 }
 
-// Funções de criação de gráficos
-function criarGraficoPizza(id, labels, data, titulo) {
-  new Chart(document.getElementById(id), {
-    type: "pie",
-    data: { labels, datasets: [{ data }] },
-    options: { plugins: { title: { display: true, text: titulo } } }
+// 🔹 Preencher os filtros com valores únicos
+function preencherFiltros(dados) {
+  const bairros = [...new Set(dados.map(l => l.bairro).filter(Boolean))];
+  const eventos = [...new Set(dados.map(l => l.tipo_evento).filter(Boolean))];
+  const datas = [...new Set(dados.map(l => l.data_evento).filter(Boolean))];
+
+  preencherSelect(filtroLocal, bairros);
+  preencherSelect(filtroEvento, eventos);
+  preencherSelect(filtroData, datas);
+}
+
+function preencherSelect(select, valores) {
+  select.innerHTML = `<option value="">Todos</option>`;
+  valores.forEach(valor => {
+    const option = document.createElement("option");
+    option.value = valor;
+    option.textContent = valor;
+    select.appendChild(option);
   });
 }
 
-function criarGraficoBarras(id, labels, data, titulo) {
-  new Chart(document.getElementById(id), {
+// 🔹 Aplicar filtros
+function aplicarFiltros() {
+  const local = filtroLocal.value;
+  const evento = filtroEvento.value;
+  const data = filtroData.value;
+
+  const filtrados = dadosPlanilha.filter(linha => {
+    return (
+      (local === "" || linha.bairro === local) &&
+      (evento === "" || linha.tipo_evento === evento) &&
+      (data === "" || linha.data_evento === data)
+    );
+  });
+
+  gerarGraficos(filtrados);
+}
+
+// 🔹 Gerar gráficos
+function gerarGraficos(dados) {
+  // Limpa gráficos anteriores
+  document.querySelectorAll("canvas").forEach(c => {
+    const ctx = c.getContext("2d");
+    ctx.clearRect(0, 0, c.width, c.height);
+  });
+
+  if (dados.length === 0) return;
+
+  // Exemplo 1: Quantidade por tipo de evento
+  const porTipo = agruparContagem(dados, "tipo_evento");
+  criarGrafico("grafico1", "Eventos por Tipo", porTipo);
+
+  // Exemplo 2: Quantidade por bairro
+  const porBairro = agruparContagem(dados, "bairro");
+  criarGrafico("grafico2", "Eventos por Bairro", porBairro);
+
+  // Exemplo 3: Intensidade de evento
+  const porIntensidade = agruparContagem(dados, "intensidade_evento");
+  criarGrafico("grafico3", "Eventos por Intensidade", porIntensidade);
+}
+
+// 🔹 Função de contagem agrupada
+function agruparContagem(dados, coluna) {
+  return dados.reduce((acc, linha) => {
+    acc[linha[coluna]] = (acc[linha[coluna]] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+// 🔹 Criar gráfico
+function criarGrafico(idCanvas, titulo, dados) {
+  const ctx = document.getElementById(idCanvas).getContext("2d");
+
+  new Chart(ctx, {
     type: "bar",
-    data: { labels, datasets: [{ data }] },
-    options: { plugins: { title: { display: true, text: titulo } } }
+    data: {
+      labels: Object.keys(dados),
+      datasets: [{
+        label: titulo,
+        data: Object.values(dados),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, title: { display: true, text: titulo } },
+      scales: { y: { beginAtZero: true } }
+    }
   });
 }
 
-function criarGraficoLinha(id, labels, data, titulo) {
-  new Chart(document.getElementById(id), {
-    type: "line",
-    data: { labels, datasets: [{ data }] },
-    options: { plugins: { title: { display: true, text: titulo } } }
-  });
-}
+// 🔹 Inicializa
+carregarDados();
 
-// Carrega automaticamente ao abrir
-window.onload = carregarGraficos;
