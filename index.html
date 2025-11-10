@@ -5,19 +5,22 @@
   <title>Análise Hidrológica - São Vicente 🌧️</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
+  <!-- Importa o Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Importa o PapaParse para ler CSV -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
   <h1>Análise Hidrológica - São Vicente 🌧️</h1>
 
   <section class="filtros">
-    <label>Local:</label>
+    <label for="filtroLocal">Local:</label>
     <select id="filtroLocal"></select>
 
-    <label>Evento:</label>
+    <label for="filtroEvento">Evento:</label>
     <select id="filtroEvento"></select>
 
-    <label>Data:</label>
+    <label for="filtroData">Data:</label>
     <select id="filtroData"></select>
 
     <button onclick="aplicarFiltros()">Aplicar Filtros</button>
@@ -34,6 +37,7 @@
     <canvas id="grafico8"></canvas>
   </section>
 
+  <!-- Script principal -->
   <script src="script.js"></script>
 </body>
 </html>
