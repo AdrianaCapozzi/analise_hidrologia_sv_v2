@@ -25,7 +25,7 @@
             background-color: #0d1117; /* Fundo Escuro */
             color: #c9d1d9;
         }
-        
+        /* Garantindo que o canvas tenha uma altura mínima */
         .chart-container {
             height: 350px;
         }
@@ -33,8 +33,8 @@
 </head>
 <body class="p-4 md:p-8">
     <header class="text-center mb-8">
-        <h1 class="text-4xl font-extrabold text-[#58a6ff]">Data Analytics - Eventos Hidrológicos Extremos - São Vicente - Baixada Santista</h1>
-        <p class="text-gray-400 mt-2">Dashboard Interativo - Escolha as variáveis e aplique os filtros</p>
+        <h1 class="text-4xl font-extrabold text-[#58a6ff]">Análise Hidrológica - São Vicente - Baixada Santista</h1>
+        <p class="text-gray-400 mt-2">Dashboard Interativo - Analytics</p>
     </header>
 
     <div id="statusDiv" class="text-center p-3 mb-6 rounded-lg bg-gray-700 text-yellow-300 hidden">Carregando dados...</div>
@@ -64,20 +64,20 @@
             <p id="kpiPopPercentual" class="text-xs text-gray-500 mt-1">0% da População Baixada Santista</p>
         </div>
         <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#f0b343] text-center">
-            <p class="text-sm uppercase tracking-wider text-gray-400">Custo Médio Gastos por Evento</p>
+            <p class="text-sm uppercase tracking-wider text-gray-400">Custo Médio Políticas Públicas por Evento</p>
             <p id="kpiCustoMedio" class="text-4xl font-bold mt-2 text-[#f0b343]">R$ 0,00</p>
             <p class="text-xs text-gray-500 mt-1">Valor estimado em R$</p>
         </div>
         <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#3fb950] text-center">
-            <p class="text-sm uppercase tracking-wider text-gray-400">Tempo Médio de Resposta ao Chamado</p>
+            <p class="text-sm uppercase tracking-wider text-gray-400">Tempo Médio de Resposta Socorro</p>
             <p id="kpiTempoResposta" class="text-4xl font-bold mt-2 text-[#3fb950]">0h 0m</p>
-            <p class="text-xs text-gray-500 mt-1">Tempo Médio para chegada de atendimento ao local</p>
+            <p class="text-xs text-gray-500 mt-1">Média de atendimento até o local</p>
         </div>
     </section>
 
     <section class="graficos grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico1" aria-label="Quantidade de Eventos x Tipos de Eventos"></canvas>
+            <canvas id="grafico1" aria-label="Eventos por Tipo"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
             <canvas id="grafico2" aria-label="Proporção de Intensidade"></canvas>
@@ -86,25 +86,25 @@
             <canvas id="grafico3" aria-label="Tendência Diária de Precipitação"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico4" aria-label="Eventos x Bairro x Nível de Alerta"></canvas>
+            <canvas id="grafico4" aria-label="Eventos por Bairro e Nível de Alerta"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico5" aria-label="Precipitação x Duração"></canvas>
+            <canvas id="grafico5" aria-label="Precipitação vs Duração"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
             <canvas id="grafico6" aria-label="Custo Estimado Acumulado"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico7" aria-label="Média de Variáveis x Status"></canvas>
+            <canvas id="grafico7" aria-label="Média de Variáveis por Status"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
             <canvas id="grafico8" aria-label="Top Bairros por Área Afetada"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico9" aria-label="Fluxo Médio x Temperatura"></canvas>
+            <canvas id="grafico9" aria-label="Fluxo Médio vs Temperatura"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico10" aria-label="Nível da Maré Médio x Bairro"></canvas>
+            <canvas id="grafico10" aria-label="Nível da Maré Médio por Bairro"></canvas>
         </div>
     </section>
 
@@ -679,12 +679,5 @@
         window.onload = carregarDados;
 
     </script>
-</body>
-
-<body>
-
-  <footer class="footer">
-    <p>Desenvolvido por <strong>Adriana Capozzi</strong> @ Projeto Integrador IV — UNIVESP</p>
-  </footer>
 </body>
 </html>
