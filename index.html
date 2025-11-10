@@ -567,21 +567,46 @@ criarGrafico("grafico4", {
 
 
             // --- GRÁFICO 5: Precipitação vs Duração (Dispersão/Correlação) ---
-            const scatterData = dados.filter(l => l.precipitacao_mm !== null && l.duracao_horas !== null)
-                                    .map(l => ({ x: l.duracao_horas, y: l.precipitacao_mm }));
-            
-            criarGrafico("grafico5", {
-                type: "scatter",
-                data: {
-                    datasets: [{
-                        label: 'Precipitação (mm)',
-                        data: scatterData,
-                        backgroundColor: coresPrimarias[4],
-                        pointRadius: 5
-                    }]
-                },
-                options: getChartOptions('Correlação: Precipitação vs Duração (h)', 'scatter')
-            });
+            const scatterData = dados
+  .filter(l => l.precipitacao_mm !== null && l.duracao_horas !== null)
+  .map(l => ({ x: l.duracao_horas, y: l.precipitacao_mm }));
+
+criarGrafico("grafico5", {
+  type: "scatter",
+  data: {
+    datasets: [{
+      label: '', // legenda removida
+      data: scatterData,
+      backgroundColor: coresPrimarias[4],
+      pointRadius: 5
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false }, // 🔹 remove legenda
+      title: {
+        display: true,
+        text: 'Correlação: Precipitação vs Duração (h)',
+        color: '#fff',
+        font: { size: 16, weight: 'bold' }
+      }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Duração (h)', color: '#ccc' },
+        ticks: { color: '#ccc' },
+        grid: { color: '#333' }
+      },
+      y: {
+        title: { display: true, text: 'Precipitação (mm)', color: '#ccc' },
+        ticks: { color: '#ccc' },
+        grid: { color: '#333' }
+      }
+    },
+    layout: { padding: 10 }
+  }
+});
 
             // --- GRÁFICO 6: Custo Estimado Acumulado (Linha) ---
             const custosMensais = dados.filter(l => l.data_evento && l.custo_estimado_reais !== null)
