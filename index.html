@@ -385,21 +385,47 @@
             });
 
             // --- GRÁFICO 2: Proporção de Intensidade (Rosca/Doughnut) ---
-            const porIntensidade = agruparContagem(dados, "intensidade_evento");
-            criarGrafico("grafico2", {
-                type: "doughnut",
-                data: {
-                    labels: Object.keys(porIntensidade),
-                    datasets: [{
-                        label: 'Intensidade',
-                        data: Object.values(porIntensidade),
-                        backgroundColor: coresPrimarias.slice(0, 5),
-                        borderColor: '#21262d',
-                        borderWidth: 2
-                    }]
-                },
-                options: getChartOptions('Proporção por Intensidade', 'doughnut')
-            });
+           const porIntensidade = agruparContagem(dados, "nivel_alerta");
+criarGrafico("grafico2", {
+    type: "doughnut",
+    data: {
+        labels: Object.keys(porIntensidade),
+        datasets: [{
+            label: 'Intensidade',
+            data: Object.values(porIntensidade),
+            backgroundColor: coresPrimarias.slice(0, 5),
+            borderColor: '#21262d',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true, // deixa a legenda visível (ou troque pra false pra esconder totalmente)
+                position: 'bottom',
+                labels: {
+                    color: '#ccc',
+                    font: { size: 12 }
+                }
+            },
+            title: {
+                display: true,
+                text: 'Nível do Alerta',
+                color: '#fff',
+                font: { size: 16, weight: 'bold' }
+            }
+        },
+        layout: {
+            padding: 10
+        },
+        // remove qualquer grade ou eixo “invisível”
+        scales: {
+            x: { display: false, grid: { display: false, drawBorder: false } },
+            y: { display: false, grid: { display: false, drawBorder: false } }
+        }
+    }
+});
 
             // --- GRÁFICO 3: Tendência Diária de Precipitação (Linha) ---
             const porData = {};
