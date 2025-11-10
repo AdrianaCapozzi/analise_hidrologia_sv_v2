@@ -19,13 +19,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <style>
-        
+        /* Estilos básicos para o fundo escuro */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0d1117; 
+            background-color: #0d1117; /* Fundo Escuro */
             color: #c9d1d9;
         }
-
+        
         .chart-container {
             height: 350px;
         }
@@ -33,23 +33,23 @@
 </head>
 <body class="p-4 md:p-8">
     <header class="text-center mb-8">
-        <h1 class="text-4xl font-extrabold text-[#58a6ff]">Data Analytics - Eventos Extremos - Baixada Santista</h1>
-        <p class="text-gray-400 mt-2">Dashboard Interativo - Escolha as variáveis e os aplique filtros</p>
+        <h1 class="text-4xl font-extrabold text-[#58a6ff]">Data Analytics - Eventos Hidrológicos Extremos - São Vicente - Baixada Santista</h1>
+        <p class="text-gray-400 mt-2">Dashboard Interativo - Escolha as variáveis e aplique os filtros</p>
     </header>
 
-    <div id="statusDiv" class="text-center p-3 mb-6 rounded-lg bg-gray-700 text-yellow-300 hidden">Atualizando base...</div>
+    <div id="statusDiv" class="text-center p-3 mb-6 rounded-lg bg-gray-700 text-yellow-300 hidden">Carregando dados...</div>
 
     <section class="filtros bg-[#161b22] p-6 rounded-xl shadow-lg mb-8 flex flex-wrap justify-center gap-4">
-        <label for="filtroLocal" class="text-gray-300 flex flex-col">Bairro:
-            <select id="filtroLocal" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200" multiple></select>
+        <label for="filtroLocal" class="text-gray-300 flex flex-col">Local:
+            <select id="filtroLocal" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200"></select>
         </label>
 
         <label for="filtroEvento" class="text-gray-300 flex flex-col">Evento:
-            <select id="filtroEvento" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200" multiple></select>
+            <select id="filtroEvento" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200"></select>
         </label>
 
         <label for="filtroData" class="text-gray-300 flex flex-col">Data:
-            <select id="filtroData" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200" multiple></select>
+            <select id="filtroData" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200"></select>
         </label>
 
         <button onclick="aplicarFiltros()" class="mt-auto px-4 py-2 bg-[#238636] hover:bg-[#2ea043] transition rounded-lg font-semibold shadow-md">
@@ -64,20 +64,20 @@
             <p id="kpiPopPercentual" class="text-xs text-gray-500 mt-1">0% da População Baixada Santista</p>
         </div>
         <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#f0b343] text-center">
-            <p class="text-sm uppercase tracking-wider text-gray-400">Custo Médio de Soluções Emergenciais por Evento</p>
+            <p class="text-sm uppercase tracking-wider text-gray-400">Custo Médio Gastos por Evento</p>
             <p id="kpiCustoMedio" class="text-4xl font-bold mt-2 text-[#f0b343]">R$ 0,00</p>
             <p class="text-xs text-gray-500 mt-1">Valor estimado em R$</p>
         </div>
         <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#3fb950] text-center">
-            <p class="text-sm uppercase tracking-wider text-gray-400">Tempo Médio de Resposta de Socorro</p>
+            <p class="text-sm uppercase tracking-wider text-gray-400">Tempo Médio de Resposta ao Chamado</p>
             <p id="kpiTempoResposta" class="text-4xl font-bold mt-2 text-[#3fb950]">0h 0m</p>
-            <p class="text-xs text-gray-500 mt-1">Média do tempo para ocorrer atendimento dos ógãos competentes no local</p>
+            <p class="text-xs text-gray-500 mt-1">Tempo Médio para chegada de atendimento ao local</p>
         </div>
     </section>
 
     <section class="graficos grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico1" aria-label="Quantidade de Eventos x Tipo Eventos"></canvas>
+            <canvas id="grafico1" aria-label="Quantidade de Eventos x Tipos de Eventos"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
             <canvas id="grafico2" aria-label="Proporção de Intensidade"></canvas>
@@ -95,10 +95,10 @@
             <canvas id="grafico6" aria-label="Custo Estimado Acumulado"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico7" aria-label="Média de Variáveis por Status"></canvas>
+            <canvas id="grafico7" aria-label="Média de Variáveis x Status"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico8" aria-label="Bairros x Área Afetada"></canvas>
+            <canvas id="grafico8" aria-label="Top Bairros por Área Afetada"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
             <canvas id="grafico9" aria-label="Fluxo Médio x Temperatura"></canvas>
@@ -207,11 +207,11 @@
                 Papa.parse(csvText, {
                     header: true,
                     skipEmptyLines: true,
-                    
+                    // Garante que todos os campos são tratados como strings inicialmente
                     dynamicTyping: false, 
                     transformHeader: h => h ? h.trim() : h,
                     complete: (results) => {
-                      
+                        // Aplica a limpeza e conversão de tipos
                         dadosPlanilha = dataPreparation(results.data);
                         
                         if (dadosPlanilha.length === 0) {
@@ -221,7 +221,7 @@
                         } else {
                             statusDiv.classList.add('hidden');
                             preencherFiltros(dadosPlanilha);
-                            aplicarFiltros(); 
+                            aplicarFiltros(); // Chama para renderizar os gráficos iniciais
                         }
                     },
                     error: (err) => {
@@ -239,47 +239,46 @@
             }
         }
 
-      // 🔹 Preencher os filtros com valores únicos (mantive igual)
-function preencherFiltros(dados) {
-  const bairros = [...new Set(dados.map(l => l.bairro).filter(Boolean).sort())];
-  const eventos = [...new Set(dados.map(l => l.tipo_evento).filter(Boolean).sort())];
-  const datas = [...new Set(dados.map(l => l.data_evento).filter(Boolean).sort((a, b) => new Date(a) - new Date(b)))];
+        // 🔹 Preencher os filtros com valores únicos
+        function preencherFiltros(dados) {
+            // Garante que só valores não vazios sejam usados
+            const bairros = [...new Set(dados.map(l => l.bairro).filter(Boolean).sort())];
+            const eventos = [...new Set(dados.map(l => l.tipo_evento).filter(Boolean).sort())];
+            const datas = [...new Set(dados.map(l => l.data_evento).filter(Boolean).sort((a, b) => new Date(a) - new Date(b)))];
 
-  preencherSelect(filtroLocal, bairros);
-  preencherSelect(filtroEvento, eventos);
-  preencherSelect(filtroData, datas);
-}
+            preencherSelect(filtroLocal, bairros);
+            preencherSelect(filtroEvento, eventos);
+            preencherSelect(filtroData, datas);
+        }
 
-// 🔹 Permite múltiplas opções
-function preencherSelect(select, valores) {
-  select.innerHTML = ""; // remove o "Todos" padrão, pois multi já implica flexibilidade
-  valores.forEach(valor => {
-    const option = document.createElement("option");
-    option.value = valor;
-    option.textContent = valor;
-    select.appendChild(option);
-  });
-}
+        function preencherSelect(select, valores) {
+            select.innerHTML = `<option value="">Todos</option>`;
+            valores.forEach(valor => {
+                const option = document.createElement("option");
+                option.value = valor;
+                option.textContent = valor;
+                select.appendChild(option);
+            });
+        }
 
-// 🔹 Aplicar filtros com múltipla seleção
-function aplicarFiltros() {
-  // captura todas as opções selecionadas
-  const locaisSelecionados = Array.from(filtroLocal.selectedOptions).map(o => o.value);
-  const eventosSelecionados = Array.from(filtroEvento.selectedOptions).map(o => o.value);
-  const datasSelecionadas = Array.from(filtroData.selectedOptions).map(o => o.value);
+        // 🔹 Aplicar filtros
+        function aplicarFiltros() {
+            const local = filtroLocal.value;
+            const evento = filtroEvento.value;
+            const data = filtroData.value;
 
-  const filtrados = dadosPlanilha.filter(linha => {
-    return (
-      (locaisSelecionados.length === 0 || locaisSelecionados.includes(linha.bairro)) &&
-      (eventosSelecionados.length === 0 || eventosSelecionados.includes(linha.tipo_evento)) &&
-      (datasSelecionadas.length === 0 || datasSelecionadas.includes(linha.data_evento))
-    );
-  });
+            const filtrados = dadosPlanilha.filter(linha => {
+                // Filtra usando as chaves padronizadas (bairro, tipo_evento, data_evento)
+                return (
+                    (local === "" || linha.bairro === local) &&
+                    (evento === "" || linha.tipo_evento === evento) &&
+                    (data === "" || linha.data_evento === data)
+                );
+            });
 
-  atualizarKPIs(filtrados);
-  gerarTodosGraficos(filtrados);
-}
-
+            atualizarKPIs(filtrados);
+            gerarTodosGraficos(filtrados);
+        }
 
         // 🔹 Atualizar KPIs (Destaques)
         function atualizarKPIs(dados) {
@@ -428,6 +427,23 @@ function aplicarFiltros() {
                 options: getChartOptions('Tendência Diária de Precipitação (mm)', 'line')
             });
 
+            // --- GRÁFICO 4: Eventos por Bairro e Nível de Alerta (Barra Empilhada) ---
+            const bairros = [...new Set(dados.map(l => l.bairro).filter(Boolean))].slice(0, 10);
+            const alertas = [...new Set(dados.map(l => l.nivel_alert).filter(Boolean))].sort();
+            const data4 = {
+                labels: bairros,
+                datasets: alertas.map((alerta, i) => ({
+                    label: alerta,
+                    data: bairros.map(bairro => dados.filter(l => l.bairro === bairro && l.nivel_alert === alerta).length),
+                    backgroundColor: coresPrimarias[i % coresPrimarias.length]
+                }))
+            };
+
+            criarGrafico("grafico4", {
+                type: "bar",
+                data: data4,
+                options: getChartOptions('Eventos por Bairro vs Nível de Alerta', 'stacked-bar')
+            });
 
 
             // --- GRÁFICO 5: Precipitação vs Duração (Dispersão/Correlação) ---
@@ -523,7 +539,7 @@ function aplicarFiltros() {
             });
 
 
-            // --- GRÁFICO 8: Bairros x Área Afetada (Barra Horizontal) ---
+            // --- GRÁFICO 8: Top 5 Bairros por Área Afetada (Barra Horizontal) ---
             const areaPorBairro = agruparSoma(dados, "bairro", "area_afetada_m2");
             const top5Bairros = Object.entries(areaPorBairro).sort(([, a], [, b]) => b - a).slice(0, 5);
 
