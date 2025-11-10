@@ -19,13 +19,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <style>
-        /* Estilos básicos para o fundo escuro */
+        
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0d1117; /* Fundo Escuro */
+            background-color: #0d1117; 
             color: #c9d1d9;
         }
-        /* Garantindo que o canvas tenha uma altura mínima */
+
         .chart-container {
             height: 350px;
         }
@@ -33,14 +33,14 @@
 </head>
 <body class="p-4 md:p-8">
     <header class="text-center mb-8">
-        <h1 class="text-4xl font-extrabold text-[#58a6ff]">Análise Hidrológica - São Vicente - Baixada Santista</h1>
-        <p class="text-gray-400 mt-2">Dashboard Interativo - Analytics</p>
+        <h1 class="text-4xl font-extrabold text-[#58a6ff]">Data Analytics - Eventos Extremos - Baixada Santista</h1>
+        <p class="text-gray-400 mt-2">Dashboard Interativo - Escolha e aplique filtros</p>
     </header>
 
-    <div id="statusDiv" class="text-center p-3 mb-6 rounded-lg bg-gray-700 text-yellow-300 hidden">Carregando dados...</div>
+    <div id="statusDiv" class="text-center p-3 mb-6 rounded-lg bg-gray-700 text-yellow-300 hidden">Atualizando base...</div>
 
     <section class="filtros bg-[#161b22] p-6 rounded-xl shadow-lg mb-8 flex flex-wrap justify-center gap-4">
-        <label for="filtroLocal" class="text-gray-300 flex flex-col">Local:
+        <label for="filtroLocal" class="text-gray-300 flex flex-col">Bairro:
             <select id="filtroLocal" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200"></select>
         </label>
 
@@ -64,20 +64,20 @@
             <p id="kpiPopPercentual" class="text-xs text-gray-500 mt-1">0% da População Baixada Santista</p>
         </div>
         <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#f0b343] text-center">
-            <p class="text-sm uppercase tracking-wider text-gray-400">Custo Médio Políticas Públicas por Evento</p>
+            <p class="text-sm uppercase tracking-wider text-gray-400">Custo Médio de Soluções Emergenciais por Evento</p>
             <p id="kpiCustoMedio" class="text-4xl font-bold mt-2 text-[#f0b343]">R$ 0,00</p>
             <p class="text-xs text-gray-500 mt-1">Valor estimado em R$</p>
         </div>
         <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#3fb950] text-center">
-            <p class="text-sm uppercase tracking-wider text-gray-400">Tempo Médio de Resposta Socorro</p>
+            <p class="text-sm uppercase tracking-wider text-gray-400">Tempo Médio de Resposta de Socorro</p>
             <p id="kpiTempoResposta" class="text-4xl font-bold mt-2 text-[#3fb950]">0h 0m</p>
-            <p class="text-xs text-gray-500 mt-1">Média de atendimento até o local</p>
+            <p class="text-xs text-gray-500 mt-1">Média do tempo para ocorrer atendimento dos ógãos competentes no local</p>
         </div>
     </section>
 
     <section class="graficos grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico1" aria-label="Eventos por Tipo"></canvas>
+            <canvas id="grafico1" aria-label="Quantidade de Eventos x Tipo Evento"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
             <canvas id="grafico2" aria-label="Proporção de Intensidade"></canvas>
@@ -207,11 +207,11 @@
                 Papa.parse(csvText, {
                     header: true,
                     skipEmptyLines: true,
-                    // Garante que todos os campos são tratados como strings inicialmente
+                    
                     dynamicTyping: false, 
                     transformHeader: h => h ? h.trim() : h,
                     complete: (results) => {
-                        // Aplica a limpeza e conversão de tipos
+                      
                         dadosPlanilha = dataPreparation(results.data);
                         
                         if (dadosPlanilha.length === 0) {
@@ -221,7 +221,7 @@
                         } else {
                             statusDiv.classList.add('hidden');
                             preencherFiltros(dadosPlanilha);
-                            aplicarFiltros(); // Chama para renderizar os gráficos iniciais
+                            aplicarFiltros(); 
                         }
                     },
                     error: (err) => {
