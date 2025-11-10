@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Análise Hidrológica - São Vicente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        /* Estilos básicos para o fundo escuro */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* Fundo Escuro */
+            color: #c9d1d9;
+        }
+        /* Garantindo que o canvas tenha uma altura mínima */
+        .chart-container {
+            height: 350px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <header class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold text-[#58a6ff]">Análise Hidrológica - São Vicente</h1>
+        <p class="text-gray-400 mt-2">Dashboard Interativo com 10 Tipos de Visualização</p>
+    </header>
+
+    <div id="statusDiv" class="text-center p-3 mb-6 rounded-lg bg-gray-700 text-yellow-300 hidden">Carregando dados...</div>
+
+    <section class="filtros bg-[#161b22] p-6 rounded-xl shadow-lg mb-8 flex flex-wrap justify-center gap-4">
+        <label for="filtroLocal" class="text-gray-300 flex flex-col">Local:
+            <select id="filtroLocal" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200"></select>
+        </label>
+
+        <label for="filtroEvento" class="text-gray-300 flex flex-col">Evento:
+            <select id="filtroEvento" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200"></select>
+        </label>
+
+        <label for="filtroData" class="text-gray-300 flex flex-col">Data:
+            <select id="filtroData" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200"></select>
+        </label>
+
+        <button onclick="aplicarFiltros()" class="mt-auto px-4 py-2 bg-[#238636] hover:bg-[#2ea043] transition rounded-lg font-semibold shadow-md">
+            Aplicar Filtros
+        </button>
+    </section>
+
+    <section id="kpis" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#ff7b72] text-center">
+            <p class="text-sm uppercase tracking-wider text-gray-400">População Total Afetada</p>
+            <p id="kpiPopAtingida" class="text-4xl font-bold mt-2 text-[#ff7b72]">0</p>
+            <p id="kpiPopPercentual" class="text-xs text-gray-500 mt-1">0% da População Baixada Santista</p>
+        </div>
+        <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#f0b343] text-center">
+            <p class="text-sm uppercase tracking-wider text-gray-400">Custo Médio por Evento</p>
+            <p id="kpiCustoMedio" class="text-4xl font-bold mt-2 text-[#f0b343]">R$ 0,00</p>
+            <p class="text-xs text-gray-500 mt-1">Valor estimado em R$</p>
+        </div>
+        <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#3fb950] text-center">
+            <p class="text-sm uppercase tracking-wider text-gray-400">Tempo Médio de Resposta</p>
+            <p id="kpiTempoResposta" class="text-4xl font-bold mt-2 text-[#3fb950]">0h 0m</p>
+            <p class="text-xs text-gray-500 mt-1">Média de atendimento até o local</p>
+        </div>
+    </section>
+
+    <section class="graficos grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico1" aria-label="Eventos por Tipo"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico2" aria-label="Proporção de Intensidade"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico3" aria-label="Tendência Diária de Precipitação"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico4" aria-label="Eventos por Bairro e Nível de Alerta"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico5" aria-label="Precipitação vs Duração"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico6" aria-label="Custo Estimado Acumulado"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico7" aria-label="Média de Variáveis por Status"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico8" aria-label="Top Bairros por Área Afetada"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico9" aria-label="Fluxo Médio vs Temperatura"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico10" aria-label="Nível da Maré Médio por Bairro"></canvas>
+        </div>
+    </section>
+
+    <script>
+        // 🔗 Conectando à planilha Google Sheets
+        const SHEET_ID = "1NfzrLVc_MoepVM3021fRWOis-fuwJBq9ocqA0u2sEDQ";
+        const SHEET_NAME = "dados";
+        // CORREÇÃO ESSENCIAL: URL formatada corretamente sem o escape de crase
+        const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
+
+        // 📊 Constante de População (Baixada Santista ~1.9 milhões)
+        const POPULACAO_BS = 1900000;
+
+        // 🔹 Elementos HTML
+        const filtroLocal = document.getElementById("filtroLocal");
+        const filtroEvento = document.getElementById("filtroEvento");
+        const filtroData = document.getElementById("filtroData");
+        const statusDiv = document.getElementById("statusDiv");
+        const canvasIds = Array.from({ length: 10 }, (_, i) => `grafico${i + 1}`);
+
+        let dadosPlanilha = [];
+        let chartInstances = {}; // Mapa para gerenciar as instâncias dos gráficos
+
+        // 🎨 Cores para os gráficos (Tailwind-like)
+        const coresPrimarias = ['#58a6ff', '#f0b343', '#ff7b72', '#3fb950', '#8957e5', '#4ee1ec', '#ffa657', '#93e870', '#5e606a', '#434c56'];
+        const coresSecundarias = ['#0d497c', '#7c5a0d', '#7c0d0d', '#1f5e27', '#452c72', '#277077', '#775027', '#497237', '#2e3034', '#20262c'];
+
+        // 🔹 Função Auxiliar para Conversão e Limpeza de Valores Numéricos
+        function parseValue(value) {
+            if (value === undefined || value === null || value === "") return null;
+            // Tenta limpar a string para ter apenas dígitos, ponto e sinal de menos
+            const cleaned = String(value).replace(/[^0-9.,-]/g, '').replace(',', '.');
+            const num = parseFloat(cleaned);
+            return isNaN(num) ? null : num;
+        }
+
+        /**
+         * Mapeia os nomes de colunas do CSV para chaves padronizadas (case-insensitive e trim)
+         * e converte valores numéricos.
+         */
+        function dataPreparation(dados) {
+            if (!dados || dados.length === 0) return [];
+
+            const firstRow = dados[0];
+            const originalKeys = Object.keys(firstRow);
+            
+            // Cria um mapa para associar chaves originais (limpas) a chaves padronizadas
+            const keyMap = {};
+            const standardKeys = [
+                'bairro', 'tipo_evento', 'data_evento', 'intensidade_evento', 'populacao_afetada',
+                'custo_estimado_reais', 'tempo_resposta_horas', 'precipitacao_mm', 'duracao_horas',
+                'nivel_alert', 'area_afetada_m2', 'Fluxo_agua_m2_seg', 'temperatura_celsius',
+                'status_atendimento', 'nivel_mare_cm', 'Total_acumulad0_L', 'Altura_cm'
+            ];
+            
+            originalKeys.forEach(originalKey => {
+                // Normaliza a chave original removendo espaços e convertendo para minúsculas
+                const cleanKey = originalKey.toLowerCase().replace(/[^a-z0-9_]/g, ''); 
+                
+                // Tenta associar a chave limpa a uma chave padronizada
+                for (const standardKey of standardKeys) {
+                    if (cleanKey.includes(standardKey.replace(/_/g, '')) || standardKey.toLowerCase().includes(cleanKey.replace(/_/g, ''))) {
+                         keyMap[originalKey] = standardKey;
+                         return; // Mapeado, sai do loop interno
+                    }
+                }
+                // Se não mapeou para uma chave padrão, usa o nome limpo original
+                keyMap[originalKey] = cleanKey; 
+            });
+
+
+            return dados.map(linha => {
+                const cleanedLine = {};
+                for (const originalKey in linha) {
+                    const value = linha[originalKey];
+                    // Usa o mapeamento
+                    const mappedKey = keyMap[originalKey] || originalKey.trim().toLowerCase().replace(/[^a-z0-9_]+/g, '');
+                    
+                    // Converte valores conhecidos para numéricos
+                    if (['populacao_afetada', 'custo_estimado_reais', 'tempo_resposta_horas', 'precipitacao_mm', 'duracao_horas', 'area_afetada_m2', 'Fluxo_agua_m2_seg', 'temperatura_celsius', 'nivel_mare_cm', 'Total_acumulad0_L', 'Altura_cm'].includes(mappedKey)) {
+                        cleanedLine[mappedKey] = parseValue(value);
+                    } else {
+                        // Para texto (bairro, evento, data), apenas limpa espaços
+                        cleanedLine[mappedKey] = value ? String(value).trim() : '';
+                    }
+                }
+                return cleanedLine;
+            }).filter(linha => linha.bairro && linha.data_evento); // Remove linhas sem dados cruciais
+        }
+
+
+        // 🔹 Carregar dados da planilha
+        async function carregarDados() {
+            statusDiv.textContent = "Carregando dados...";
+            statusDiv.classList.remove('hidden');
+
+            try {
+                const response = await fetch(API_URL);
+                const csvText = await response.text();
+
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    // Garante que todos os campos são tratados como strings inicialmente
+                    dynamicTyping: false, 
+                    transformHeader: h => h ? h.trim() : h,
+                    complete: (results) => {
+                        // Aplica a limpeza e conversão de tipos
+                        dadosPlanilha = dataPreparation(results.data);
+                        
+                        if (dadosPlanilha.length === 0) {
+                            statusDiv.textContent = "Erro: Nenhum dado válido encontrado após a limpeza. Verifique se as colunas estão preenchidas.";
+                            statusDiv.classList.remove('bg-gray-700', 'text-yellow-300');
+                            statusDiv.classList.add('bg-red-700', 'text-white');
+                        } else {
+                            statusDiv.classList.add('hidden');
+                            preencherFiltros(dadosPlanilha);
+                            aplicarFiltros(); // Chama para renderizar os gráficos iniciais
+                        }
+                    },
+                    error: (err) => {
+                        console.error("Erro PapaParse:", err);
+                        statusDiv.textContent = "Erro ao processar o CSV. Verifique o formato dos dados.";
+                        statusDiv.classList.remove('bg-gray-700', 'text-yellow-300');
+                        statusDiv.classList.add('bg-red-700', 'text-white');
+                    }
+                });
+            } catch (erro) {
+                console.error("Erro ao carregar planilha:", erro);
+                statusDiv.textContent = "Erro de rede ao acessar a planilha. Verifique a URL do Google Sheets.";
+                statusDiv.classList.remove('bg-gray-700', 'text-yellow-300');
+                statusDiv.classList.add('bg-red-700', 'text-white');
+            }
+        }
+
+        // 🔹 Preencher os filtros com valores únicos
+        function preencherFiltros(dados) {
+            // Garante que só valores não vazios sejam usados
+            const bairros = [...new Set(dados.map(l => l.bairro).filter(Boolean).sort())];
+            const eventos = [...new Set(dados.map(l => l.tipo_evento).filter(Boolean).sort())];
+            const datas = [...new Set(dados.map(l => l.data_evento).filter(Boolean).sort((a, b) => new Date(a) - new Date(b)))];
+
+            preencherSelect(filtroLocal, bairros);
+            preencherSelect(filtroEvento, eventos);
+            preencherSelect(filtroData, datas);
+        }
+
+        function preencherSelect(select, valores) {
+            select.innerHTML = `<option value="">Todos</option>`;
+            valores.forEach(valor => {
+                const option = document.createElement("option");
+                option.value = valor;
+                option.textContent = valor;
+                select.appendChild(option);
+            });
+        }
+
+        // 🔹 Aplicar filtros
+        function aplicarFiltros() {
+            const local = filtroLocal.value;
+            const evento = filtroEvento.value;
+            const data = filtroData.value;
+
+            const filtrados = dadosPlanilha.filter(linha => {
+                // Filtra usando as chaves padronizadas (bairro, tipo_evento, data_evento)
+                return (
+                    (local === "" || linha.bairro === local) &&
+                    (evento === "" || linha.tipo_evento === evento) &&
+                    (data === "" || linha.data_evento === data)
+                );
+            });
+
+            atualizarKPIs(filtrados);
+            gerarTodosGraficos(filtrados);
+        }
+
+        // 🔹 Atualizar KPIs (Destaques)
+        function atualizarKPIs(dados) {
+            const totalPopAtingida = dados.reduce((sum, l) => sum + (l.populacao_afetada || 0), 0);
+            const totalCusto = dados.reduce((sum, l) => sum + (l.custo_estimado_reais || 0), 0);
+            const totalTempo = dados.reduce((sum, l) => sum + (l.tempo_resposta_horas || 0), 0);
+
+            const numEventos = dados.length || 1;
+            const mediaCusto = totalCusto / numEventos;
+            const mediaTempo = totalTempo / numEventos;
+            const percentualPop = ((totalPopAtingida / POPULACAO_BS) * 100).toFixed(2);
+            
+            const horas = Math.floor(mediaTempo);
+            const minutos = Math.round((mediaTempo - horas) * 60);
+
+            document.getElementById("kpiPopAtingida").textContent = totalPopAtingida.toLocaleString('pt-BR');
+            document.getElementById("kpiPopPercentual").textContent = `${percentualPop} % da População Baixada Santista`;
+            document.getElementById("kpiCustoMedio").textContent = mediaCusto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById("kpiTempoResposta").textContent = `${horas}h ${minutos}m`;
+        }
+
+
+        // 🔹 Funções Auxiliares de Agregação
+        function agruparContagem(dados, coluna) {
+            return dados.filter(l => l[coluna]).reduce((acc, linha) => {
+                acc[linha[coluna]] = (acc[linha[coluna]] || 0) + 1;
+                return acc;
+            }, {});
+        }
+
+        function agruparSoma(dados, colunaAgrupamento, colunaSoma) {
+            return dados.filter(l => l[colunaAgrupamento] && l[colunaSoma] !== null).reduce((acc, linha) => {
+                acc[linha[colunaAgrupamento]] = (acc[linha[colunaAgrupamento]] || 0) + (linha[colunaSoma] || 0);
+                return acc;
+            }, {});
+        }
+
+        function agruparMedia(dados, colunaAgrupamento, colunaMedia) {
+            const counts = {};
+            const sums = {};
+
+            dados.filter(l => l[colunaAgrupamento] && l[colunaMedia] !== null).forEach(linha => {
+                const key = linha[colunaAgrupamento];
+                sums[key] = (sums[key] || 0) + (linha[colunaMedia] || 0);
+                counts[key] = (counts[key] || 0) + 1;
+            });
+
+            const medias = {};
+            for (const key in sums) {
+                medias[key] = sums[key] / counts[key];
+            }
+            return medias;
+        }
+
+        // 🔹 Gerenciamento de Gráficos (Essencial para não travar no re-render)
+        function destruirGraficos() {
+            canvasIds.forEach(id => {
+                if (chartInstances[id]) {
+                    chartInstances[id].destroy();
+                    delete chartInstances[id];
+                }
+                // Limpa o conteúdo da div/canvas, caso tenha mensagem de "Sem dados"
+                const canvasElement = document.getElementById(id);
+                if(canvasElement) canvasElement.innerHTML = '';
+            });
+        }
+
+        function criarGrafico(idCanvas, config) {
+            const ctx = document.getElementById(idCanvas).getContext("2d");
+            // Define o fundo do chart como transparente para usar o fundo do card
+            config.options.backgroundColor = 'transparent';
+            Chart.defaults.color = '#c9d1d9';
+            chartInstances[idCanvas] = new Chart(ctx, config);
+        }
+
+        // 🔹 Geração de Todos os Gráficos (10 Tipos)
+        function gerarTodosGraficos(dados) {
+            destruirGraficos();
+
+            if (dados.length < 2) {
+                // Se não houver dados, exibe a mensagem de "Sem dados" em todos os containers
+                canvasIds.forEach(id => {
+                    const container = document.getElementById(id).parentNode;
+                    container.innerHTML = `<div class="text-center text-gray-500 pt-16">Sem dados suficientes para gerar gráficos com os filtros aplicados. (${dados.length} linha(s) encontrada(s)).</div>`;
+                });
+                return;
+            }
+
+            // --- GRÁFICO 1: Eventos por Tipo (Barra) ---
+            const porTipo = agruparContagem(dados, "tipo_evento");
+            criarGrafico("grafico1", {
+                type: "bar",
+                data: {
+                    labels: Object.keys(porTipo),
+                    datasets: [{
+                        label: 'Eventos',
+                        data: Object.values(porTipo),
+                        backgroundColor: coresPrimarias[0],
+                        borderColor: coresPrimarias[0],
+                        borderWidth: 1
+                    }]
+                },
+                options: getChartOptions('Eventos por Tipo', 'bar')
+            });
+
+            // --- GRÁFICO 2: Proporção de Intensidade (Rosca/Doughnut) ---
+            const porIntensidade = agruparContagem(dados, "intensidade_evento");
+            criarGrafico("grafico2", {
+                type: "doughnut",
+                data: {
+                    labels: Object.keys(porIntensidade),
+                    datasets: [{
+                        label: 'Intensidade',
+                        data: Object.values(porIntensidade),
+                        backgroundColor: coresPrimarias.slice(0, 5),
+                        borderColor: '#21262d',
+                        borderWidth: 2
+                    }]
+                },
+                options: getChartOptions('Proporção por Intensidade', 'doughnut')
+            });
+
+            // --- GRÁFICO 3: Tendência Diária de Precipitação (Linha) ---
+            const porData = {};
+            dados.filter(l => l.data_evento && l.precipitacao_mm !== null).forEach(l => {
+                const data = l.data_evento;
+                porData[data] = (porData[data] || 0) + l.precipitacao_mm;
+            });
+            const datasOrdenadas = Object.keys(porData).sort((a, b) => new Date(a) - new Date(b));
+            const precipitacaoTotal = datasOrdenadas.map(d => porData[d]);
+
+            criarGrafico("grafico3", {
+                type: "line",
+                data: {
+                    labels: datasOrdenadas,
+                    datasets: [{
+                        label: 'Precipitação Acumulada (mm)',
+                        data: precipitacaoTotal,
+                        borderColor: coresPrimarias[2],
+                        backgroundColor: 'rgba(255, 123, 114, 0.2)',
+                        tension: 0.4,
+                        pointRadius: 3,
+                        fill: true
+                    }]
+                },
+                options: getChartOptions('Tendência Diária de Precipitação (mm)', 'line')
+            });
+
+            // --- GRÁFICO 4: Eventos por Bairro e Nível de Alerta (Barra Empilhada) ---
+            const bairros = [...new Set(dados.map(l => l.bairro).filter(Boolean))].slice(0, 10);
+            const alertas = [...new Set(dados.map(l => l.nivel_alert).filter(Boolean))].sort();
+            const data4 = {
+                labels: bairros,
+                datasets: alertas.map((alerta, i) => ({
+                    label: alerta,
+                    data: bairros.map(bairro => dados.filter(l => l.bairro === bairro && l.nivel_alert === alerta).length),
+                    backgroundColor: coresPrimarias[i % coresPrimarias.length]
+                }))
+            };
+
+            criarGrafico("grafico4", {
+                type: "bar",
+                data: data4,
+                options: getChartOptions('Eventos por Bairro vs Nível de Alerta', 'stacked-bar')
+            });
+
+
+            // --- GRÁFICO 5: Precipitação vs Duração (Dispersão/Correlação) ---
+            const scatterData = dados.filter(l => l.precipitacao_mm !== null && l.duracao_horas !== null)
+                                    .map(l => ({ x: l.duracao_horas, y: l.precipitacao_mm }));
+            
+            criarGrafico("grafico5", {
+                type: "scatter",
+                data: {
+                    datasets: [{
+                        label: 'Precipitação (mm)',
+                        data: scatterData,
+                        backgroundColor: coresPrimarias[4],
+                        pointRadius: 5
+                    }]
+                },
+                options: getChartOptions('Correlação: Precipitação vs Duração (h)', 'scatter')
+            });
+
+            // --- GRÁFICO 6: Custo Estimado Acumulado (Linha) ---
+            const custosMensais = dados.filter(l => l.data_evento && l.custo_estimado_reais !== null)
+                .reduce((acc, l) => {
+                    const dataObj = new Date(l.data_evento);
+                    // Formata para Mês/Ano para agrupar
+                    const mesAno = dataObj.toLocaleDateString('pt-BR', { year: 'numeric', month: 'short' });
+                    acc[mesAno] = (acc[mesAno] || 0) + l.custo_estimado_reais;
+                    return acc;
+                }, {});
+            
+            const mesesOrdenados = Object.keys(custosMensais).sort((a, b) => {
+                // Tenta criar uma data real para ordenação correta
+                const dateA = new Date(a.replace('.', '').replace('dez', 'Dec').replace('jan', 'Jan').replace('fev', 'Feb').replace('mar', 'Mar').replace('abr', 'Apr').replace('mai', 'May').replace('jun', 'Jun').replace('jul', 'Jul').replace('ago', 'Aug').replace('set', 'Sep').replace('out', 'Oct').replace('nov', 'Nov'));
+                const dateB = new Date(b.replace('.', '').replace('dez', 'Dec').replace('jan', 'Jan').replace('fev', 'Feb').replace('mar', 'Mar').replace('abr', 'Apr').replace('mai', 'May').replace('jun', 'Jun').replace('jul', 'Jul').replace('ago', 'Aug').replace('set', 'Sep').replace('out', 'Oct').replace('nov', 'Nov'));
+                return dateA - dateB;
+            });
+
+            let custoAcumulado = 0;
+            const dadosAcumulados = mesesOrdenados.map(mes => {
+                custoAcumulado += custosMensais[mes];
+                return custoAcumulado;
+            });
+
+            criarGrafico("grafico6", {
+                type: "line",
+                data: {
+                    labels: mesesOrdenados,
+                    datasets: [{
+                        label: 'Custo Acumulado (R$)',
+                        data: dadosAcumulados,
+                        borderColor: coresPrimarias[5],
+                        backgroundColor: 'rgba(78, 225, 236, 0.2)',
+                        tension: 0.2,
+                        fill: true
+                    }]
+                },
+                options: getChartOptions('Custo Estimado Acumulado ao Longo do Tempo', 'line')
+            });
+
+            // --- GRÁFICO 7: Média de Variáveis por Status (Área Polar) ---
+            const statusMedia = {};
+            dados.filter(l => l.status_atendimento).forEach(l => {
+                const key = l.status_atendimento;
+                if (!statusMedia[key]) statusMedia[key] = { temp: 0, vento: 0, umidade: 0, count: 0 };
+                
+                statusMedia[key].temp += (l.temperatura_celsius || 0);
+                statusMedia[key].vento += (l.velocidade_vento_kmh || 0);
+                statusMedia[key].umidade += (l.umidade_relativa || 0);
+                statusMedia[key].count++;
+            });
+
+            const labels7 = Object.keys(statusMedia);
+            const datasets7 = [
+                {
+                    label: 'Temperatura Média (°C)',
+                    data: labels7.map(k => statusMedia[k].temp / statusMedia[k].count),
+                    backgroundColor: 'rgba(255, 123, 114, 0.5)',
+                    borderColor: coresPrimarias[2],
+                    borderWidth: 1
+                },
+                {
+                    label: 'Vento Médio (km/h)',
+                    data: labels7.map(k => statusMedia[k].vento / statusMedia[k].count),
+                    backgroundColor: 'rgba(88, 166, 255, 0.5)',
+                    borderColor: coresPrimarias[0],
+                    borderWidth: 1
+                }
+            ];
+
+            criarGrafico("grafico7", {
+                type: "polarArea",
+                data: { labels: labels7, datasets: datasets7 },
+                options: getChartOptions('Média de Variáveis Ambientais por Status de Atendimento', 'polarArea')
+            });
+
+
+            // --- GRÁFICO 8: Top 5 Bairros por Área Afetada (Barra Horizontal) ---
+            const areaPorBairro = agruparSoma(dados, "bairro", "area_afetada_m2");
+            const top5Bairros = Object.entries(areaPorBairro).sort(([, a], [, b]) => b - a).slice(0, 5);
+
+            criarGrafico("grafico8", {
+                type: "bar",
+                data: {
+                    labels: top5Bairros.map(e => e[0]),
+                    datasets: [{
+                        label: 'Área Afetada (m²)',
+                        data: top5Bairros.map(e => e[1]),
+                        backgroundColor: coresPrimarias[7],
+                        borderColor: coresPrimarias[7],
+                        borderWidth: 1
+                    }]
+                },
+                options: getChartOptions('Top 5 Bairros por Área Afetada (m²)', 'horizontal-bar')
+            });
+
+
+            // --- GRÁFICO 9: Fluxo Médio vs Temperatura (Barra/Linha Combinado) ---
+            const mediaPorTipo = {};
+            dados.filter(l => l.tipo_evento && l.Fluxo_agua_m2_seg !== null && l.temperatura_celsius !== null)
+                .forEach(l => {
+                    const key = l.tipo_evento;
+                    if (!mediaPorTipo[key]) mediaPorTipo[key] = { fluxo: 0, temp: 0, count: 0 };
+                    mediaPorTipo[key].fluxo += l.Fluxo_agua_m2_seg;
+                    mediaPorTipo[key].temp += l.temperatura_celsius;
+                    mediaPorTipo[key].count++;
+                });
+
+            const labels9 = Object.keys(mediaPorTipo);
+            const dadosFluxo = labels9.map(k => mediaPorTipo[k].fluxo / mediaPorTipo[k].count);
+            const dadosTemp = labels9.map(k => mediaPorTipo[k].temp / mediaPorTipo[k].count);
+
+            criarGrafico("grafico9", {
+                data: {
+                    labels: labels9,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Fluxo de Água Médio (m²/s)',
+                            data: dadosFluxo,
+                            backgroundColor: coresPrimarias[8],
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Temperatura Média (°C)',
+                            data: dadosTemp,
+                            borderColor: coresPrimarias[2],
+                            backgroundColor: 'rgba(255, 123, 114, 0.4)',
+                            fill: false,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: getChartOptions('Fluxo Médio de Água vs Temperatura Média', 'combo-bar-line')
+            });
+
+            // --- GRÁFICO 10: Nível da Maré Médio por Bairro (Barra) ---
+            const mediaMarePorBairro = agruparMedia(dados, "bairro", "nivel_mare_cm");
+            const top5Mare = Object.entries(mediaMarePorBairro).sort(([, a], [, b]) => b - a).slice(0, 5);
+
+            criarGrafico("grafico10", {
+                type: "bar",
+                data: {
+                    labels: top5Mare.map(e => e[0]),
+                    datasets: [{
+                        label: 'Nível Médio da Maré (cm)',
+                        data: top5Mare.map(e => e[1]),
+                        backgroundColor: coresPrimarias[9],
+                        borderColor: coresPrimarias[9],
+                        borderWidth: 1
+                    }]
+                },
+                options: getChartOptions('Nível Médio da Maré por Bairro', 'bar')
+            });
+        }
+
+        // 🔹 Opções Base para Gráficos
+        function getChartOptions(title, type) {
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#c9d1d9'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: title,
+                        color: '#c9d1d9',
+                        font: { size: 16, weight: '600' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#8b949e' },
+                        grid: { color: 'rgba(48, 54, 61, 0.5)' }
+                    },
+                    y: {
+                        ticks: { color: '#8b949e' },
+                        grid: { color: 'rgba(48, 54, 61, 0.5)' }
+                    }
+                }
+            };
+
+            if (type === 'bar' || type === 'horizontal-bar') {
+                commonOptions.scales.y.beginAtZero = true;
+                if (type === 'horizontal-bar') {
+                    // Troca X e Y para barra horizontal
+                    commonOptions.indexAxis = 'y';
+                    commonOptions.scales.x.beginAtZero = true;
+                    delete commonOptions.scales.y.beginAtZero;
+                }
+            } else if (type === 'stacked-bar') {
+                commonOptions.scales.x.stacked = true;
+                commonOptions.scales.y.stacked = true;
+                commonOptions.scales.y.beginAtZero = true;
+            } else if (type === 'scatter') {
+                commonOptions.scales.y.title = { display: true, text: 'Precipitação (mm)', color: '#8b949e' };
+                commonOptions.scales.x.title = { display: true, text: 'Duração (h)', color: '#8b949e' };
+            } else if (type === 'combo-bar-line') {
+                commonOptions.scales = {
+                    x: { ticks: { color: '#8b949e' }, grid: { color: 'rgba(48, 54, 61, 0.5)' } },
+                    y: { type: 'linear', position: 'left', ticks: { color: coresPrimarias[8] }, grid: { color: 'rgba(48, 54, 61, 0.5)' } },
+                    y1: { type: 'linear', position: 'right', ticks: { color: coresPrimarias[2] }, grid: { drawOnChartArea: false } }
+                };
+            }
+
+            return commonOptions;
+        }
+
+        // 🔹 Inicializa ao carregar a janela
+        window.onload = carregarDados;
+
+    </script>
+</body>
+</html>
