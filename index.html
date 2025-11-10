@@ -609,43 +609,65 @@ criarGrafico("grafico5", {
 });
 
             // --- GRÁFICO 6: Custo Estimado Acumulado (Linha) ---
-            const custosMensais = dados.filter(l => l.data_evento && l.custo_estimado_reais !== null)
-                .reduce((acc, l) => {
-                    const dataObj = new Date(l.data_evento);
-                    // Formata para Mês/Ano para agrupar
-                    const mesAno = dataObj.toLocaleDateString('pt-BR', { year: 'numeric', month: 'short' });
-                    acc[mesAno] = (acc[mesAno] || 0) + l.custo_estimado_reais;
-                    return acc;
-                }, {});
-            
-            const mesesOrdenados = Object.keys(custosMensais).sort((a, b) => {
-                // Tenta criar uma data real para ordenação correta
-                const dateA = new Date(a.replace('.', '').replace('dez', 'Dec').replace('jan', 'Jan').replace('fev', 'Feb').replace('mar', 'Mar').replace('abr', 'Apr').replace('mai', 'May').replace('jun', 'Jun').replace('jul', 'Jul').replace('ago', 'Aug').replace('set', 'Sep').replace('out', 'Oct').replace('nov', 'Nov'));
-                const dateB = new Date(b.replace('.', '').replace('dez', 'Dec').replace('jan', 'Jan').replace('fev', 'Feb').replace('mar', 'Mar').replace('abr', 'Apr').replace('mai', 'May').replace('jun', 'Jun').replace('jul', 'Jul').replace('ago', 'Aug').replace('set', 'Sep').replace('out', 'Oct').replace('nov', 'Nov'));
-                return dateA - dateB;
-            });
+            const custosMensais = dados
+  .filter(l => l.data_evento && l.custo_estimado_reais !== null)
+  .reduce((acc, l) => {
+    const dataObj = new Date(l.data_evento);
+    const mesAno = dataObj.toLocaleDateString('pt-BR', { year: 'numeric', month: 'short' });
+    acc[mesAno] = (acc[mesAno] || 0) + l.custo_estimado_reais;
+    return acc;
+  }, {});
 
-            let custoAcumulado = 0;
-            const dadosAcumulados = mesesOrdenados.map(mes => {
-                custoAcumulado += custosMensais[mes];
-                return custoAcumulado;
-            });
+const mesesOrdenados = Object.keys(custosMensais).sort((a, b) => {
+  const dateA = new Date(a.replace('.', '').replace('dez', 'Dec').replace('jan', 'Jan').replace('fev', 'Feb').replace('mar', 'Mar').replace('abr', 'Apr').replace('mai', 'May').replace('jun', 'Jun').replace('jul', 'Jul').replace('ago', 'Aug').replace('set', 'Sep').replace('out', 'Oct').replace('nov', 'Nov'));
+  const dateB = new Date(b.replace('.', '').replace('dez', 'Dec').replace('jan', 'Jan').replace('fev', 'Feb').replace('mar', 'Mar').replace('abr', 'Apr').replace('mai', 'May').replace('jun', 'Jun').replace('jul', 'Jul').replace('ago', 'Aug').replace('set', 'Sep').replace('out', 'Oct').replace('nov', 'Nov'));
+  return dateA - dateB;
+});
 
-            criarGrafico("grafico6", {
-                type: "line",
-                data: {
-                    labels: mesesOrdenados,
-                    datasets: [{
-                        label: 'Custo Acumulado (R$)',
-                        data: dadosAcumulados,
-                        borderColor: coresPrimarias[5],
-                        backgroundColor: 'rgba(78, 225, 236, 0.2)',
-                        tension: 0.2,
-                        fill: true
-                    }]
-                },
-                options: getChartOptions('Custo Estimado Acumulado ao Longo do Tempo', 'line')
-            });
+let custoAcumulado = 0;
+const dadosAcumulados = mesesOrdenados.map(mes => {
+  custoAcumulado += custosMensais[mes];
+  return custoAcumulado;
+});
+
+criarGrafico("grafico6", {
+  type: "line",
+  data: {
+    labels: mesesOrdenados,
+    datasets: [{
+      label: '', // legenda removida
+      data: dadosAcumulados,
+      borderColor: coresPrimarias[5],
+      backgroundColor: 'rgba(78, 225, 236, 0.2)',
+      tension: 0.2,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false }, // 🔹 remove legenda
+      title: {
+        display: true,
+        text: 'Custo Estimado Acumulado ao Longo do Tempo',
+        color: '#fff',
+        font: { size: 16, weight: 'bold' }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#ccc' },
+        grid: { color: '#333' }
+      },
+      y: {
+        ticks: { color: '#ccc' },
+        grid: { color: '#333' }
+      }
+    },
+    layout: { padding: 10 }
+  }
+});
+
 
             // --- GRÁFICO 7: Média de Variáveis por Status (Área Polar) ---
             const statusMedia = {};
