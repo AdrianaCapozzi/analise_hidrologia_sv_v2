@@ -402,30 +402,37 @@ criarGrafico("grafico2", {
         responsive: true,
         plugins: {
             legend: {
-                display: true, // deixa a legenda visível (ou troque pra false pra esconder totalmente)
-                position: 'bottom',
+                display: true,
+                position: 'top', // legenda fica no topo
+                align: 'end',    // empurra para a direita
                 labels: {
+                    boxWidth: 14,
+                    boxHeight: 14,
+                    padding: 10,
                     color: '#ccc',
-                    font: { size: 12 }
+                    font: { size: 12 },
+                    usePointStyle: true
                 }
             },
             title: {
                 display: true,
                 text: 'Nível do Alerta',
                 color: '#fff',
-                font: { size: 16, weight: 'bold' }
+                font: { size: 16, weight: 'bold' },
+                padding: { bottom: 10 }
             }
         },
         layout: {
             padding: 10
         },
-        // remove qualquer grade ou eixo “invisível”
+        // garante que nada de eixo/grade apareça
         scales: {
             x: { display: false, grid: { display: false, drawBorder: false } },
             y: { display: false, grid: { display: false, drawBorder: false } }
         }
     }
 });
+
 
             // --- GRÁFICO 3: Tendência Diária de Precipitação (Linha) ---
             const porData = {};
