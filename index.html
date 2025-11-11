@@ -95,16 +95,22 @@
             <canvas id="grafico6" aria-label="Custo Estimado Acumulado"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico7" aria-label="Média de Variáveis por Status"></canvas>
+            <canvas id="grafico71" aria-label="Status Atendimento x Órgão Responsável"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico8" aria-label="Top Bairros por Área Afetada"></canvas>
+            <canvas id="grafico72" aria-label="Status Atendimento x Órgão Responsável"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico9" aria-label="Fluxo Médio vs Temperatura"></canvas>
+            <canvas id="grafico73" aria-label="Status Atendimento x Órgão Responsável"></canvas>
         </div>
         <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
-            <canvas id="grafico10" aria-label="Nível da Maré Médio por Bairro"></canvas>
+            <canvas id="grafico8" aria-label="Bairros x Área Afetada"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico9" aria-label="Fluxo Médio x Temperatura"></canvas>
+        </div>
+        <div class="bg-[#21262d] p-4 rounded-xl shadow-xl chart-container">
+            <canvas id="grafico10" aria-label="Nível da Maré Médio x Bairro"></canvas>
         </div>
     </section>
 
@@ -670,40 +676,67 @@ criarGrafico("grafico6", {
 
 
             // --- GRÁFICO 7: Média de Variáveis por Status (Área Polar) ---
-            const statusMedia = {};
-            dados.filter(l => l.status_atendimento).forEach(l => {
-                const key = l.status_atendimento;
-                if (!statusMedia[key]) statusMedia[key] = { temp: 0, vento: 0, umidade: 0, count: 0 };
-                
-                statusMedia[key].temp += (l.temperatura_celsius || 0);
-                statusMedia[key].vento += (l.velocidade_vento_kmh || 0);
-                statusMedia[key].umidade += (l.umidade_relativa || 0);
-                statusMedia[key].count++;
-            });
+            // --- GRÁFICOS 7A, 7B e 7C: Distribuição de Status por Órgão Responsável (Pizza) ---
+const orgaos = ['Prefeitura', 'Defesa Civil', 'Corpo de Bombeiros'];
 
-            const labels7 = Object.keys(statusMedia);
-            const datasets7 = [
-                {
-                    label: 'Temperatura Média (°C)',
-                    data: labels7.map(k => statusMedia[k].temp / statusMedia[k].count),
-                    backgroundColor: 'rgba(255, 123, 114, 0.5)',
-                    borderColor: coresPrimarias[2],
-                    borderWidth: 1
+// Função auxiliar para gerar tons degradê da mesma cor
+function gerarDegrade(baseColor, quantidade) {
+    return Array.from({ length: quantidade }, (_, i) => {
+        const opacidade = 0.4 + (i / (quantidade * 1.5)); // varia opacidade
+        return baseColor.replace('1)', `${opacidade})`);
+    });
+}
+
+// Cores base para cada órgão
+const coresBase = {
+    'Prefeitura': 'rgba(88, 166, 255, 1)',      // Azul
+    'Defesa Civil': 'rgba(255, 206, 86, 1)',    // Amarelo
+    'Corpo de Bombeiros': 'rgba(255, 99, 132, 1)' // Vermelho
+};
+
+// Cria um gráfico para cada órgão
+orgaos.forEach((orgao, idx) => {
+    const dadosFiltrados = dados.filter(l => l.orgao_responsavel === orgao && l.status_atendimento);
+    const status = [...new Set(dadosFiltrados.map(l => l.status_atendimento))];
+    const contagem = status.map(s => dadosFiltrados.filter(l => l.status_atendimento === s).length);
+    const degrade = gerarDegrade(coresBase[orgao], status.length);
+
+    criarGrafico(`grafico7${idx + 1}`, {
+        type: "pie",
+        data: {
+            labels: status,
+            datasets: [{
+                label: `${orgao} - Status`,
+                data: contagem,
+                backgroundColor: degrade,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    align: 'center',
+                    labels: {
+                        color: '#ccc',
+                        font: { size: 12 }
+                    }
                 },
-                {
-                    label: 'Vento Médio (km/h)',
-                    data: labels7.map(k => statusMedia[k].vento / statusMedia[k].count),
-                    backgroundColor: 'rgba(88, 166, 255, 0.5)',
-                    borderColor: coresPrimarias[0],
-                    borderWidth: 1
+                title: {
+                    display: true,
+                    text: `${orgao} - Distribuição por Status`,
+                    color: '#fff',
+                    font: { size: 14 }
                 }
-            ];
-
-            criarGrafico("grafico7", {
-                type: "polarArea",
-                data: { labels: labels7, datasets: datasets7 },
-                options: getChartOptions('Média de Variáveis Ambientais por Status de Atendimento', 'polarArea')
-            });
+            },
+            scales: {
+                x: { display: false },
+                y: { display: false }
+            }
+        }
+    });
+});
 
 
             // --- GRÁFICO 8: Top 5 Bairros por Área Afetada (Barra Horizontal) ---
