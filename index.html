@@ -759,7 +759,7 @@ orgaos.forEach((orgao, idx) => {
             });
 
 
-            // --- GRÁFICO 9: Fluxo Médio vs Temperatura (Barra/Linha Combinado) ---
+            // --- GRÁFICO 9: Fluxo Médio por Temperatura (Barra/Linha Combinado) ---
             const mediaPorTipo = {};
             dados.filter(l => l.tipo_evento && l.Fluxo_agua_m2_seg !== null && l.temperatura_celsius !== null)
                 .forEach(l => {
