@@ -799,7 +799,7 @@ orgaos.forEach((orgao, idx) => {
                 options: getChartOptions('Fluxo Médio de Água vs Temperatura Média', 'combo-bar-line')
             });
 
-            // --- GRÁFICO 10: Nível da Maré Médio por Bairro (Barra) ---
+            // --- GRÁFICO 10: Nível da Maré Médio por Praia (Barra) ---
             const mediaMarePorBairro = agruparMedia(dados, "bairro", "nivel_mare_cm");
             const top5Mare = Object.entries(mediaMarePorBairro).sort(([, a], [, b]) => b - a).slice(0, 5);
 
@@ -815,7 +815,7 @@ orgaos.forEach((orgao, idx) => {
                         borderWidth: 1
                     }]
                 },
-                options: getChartOptions('Nível Médio da Maré por Bairro', 'bar')
+                options: getChartOptions('Nível Médio da Maré por Praia', 'bar')
             });
         }
 
