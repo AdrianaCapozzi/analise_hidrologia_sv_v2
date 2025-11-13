@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Análise Hidrológica - São Vicente x Baixada Santista</title>
+    <title>Analytics - Eventos Hidrológicos Extremos - São Vicente</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -48,9 +48,17 @@
             <select id="filtroEvento" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200"></select>
         </label>
 
-        <label for="filtroData" class="text-gray-300 flex flex-col">Data:
-            <select id="filtroData" class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200"></select>
-        </label>
+        <label for="filtroData" class="text-gray-300 flex flex-col">
+  Data:
+  <input 
+    type="date" 
+    id="filtroData"
+    class="mt-1 p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    min="2023-01-01"
+    max="2025-12-31"
+  >
+</label>
+
 
         <button onclick="aplicarFiltros()" class="mt-auto px-4 py-2 bg-[#238636] hover:bg-[#2ea043] transition rounded-lg font-semibold shadow-md">
             Aplicar Filtros
@@ -64,14 +72,14 @@
             <p id="kpiPopPercentual" class="text-xs text-gray-500 mt-1">0% da População Baixada Santista</p>
         </div>
         <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#f0b343] text-center">
-            <p class="text-sm uppercase tracking-wider text-gray-400">Custo Médio Políticas Públicas por Evento</p>
+            <p class="text-sm uppercase tracking-wider text-gray-400">Custo Médio Ação Emergencial</p>
             <p id="kpiCustoMedio" class="text-4xl font-bold mt-2 text-[#f0b343]">R$ 0,00</p>
             <p class="text-xs text-gray-500 mt-1">Valor estimado em R$</p>
         </div>
         <div class="bg-[#21262d] p-5 rounded-xl shadow-xl border-t-4 border-[#3fb950] text-center">
-            <p class="text-sm uppercase tracking-wider text-gray-400">Tempo Médio de Resposta Socorro</p>
+            <p class="text-sm uppercase tracking-wider text-gray-400">Tempo Médio de Resposta ao Chamado</p>
             <p id="kpiTempoResposta" class="text-4xl font-bold mt-2 text-[#3fb950]">0h 0m</p>
-            <p class="text-xs text-gray-500 mt-1">Média de atendimento até o local</p>
+            <p class="text-xs text-gray-500 mt-1">Atendimento até o local</p>
         </div>
     </section>
 
